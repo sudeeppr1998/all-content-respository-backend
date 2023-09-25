@@ -37,9 +37,10 @@ export class wordSentenceService {
     async pagination(
         skip = 0,
         limit = 5,
-        type
+        type,
+        collectionId
     ) {
-        const data = await this.wordSentenceModel.find({ type: type }).limit(limit).skip(skip).exec();
+        const data = await this.wordSentenceModel.find({ type: type, collectionId: collectionId }).limit(limit).skip(skip).exec();
         return {
             data: data,
             status: 200,

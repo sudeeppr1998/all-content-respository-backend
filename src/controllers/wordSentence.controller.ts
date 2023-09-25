@@ -25,10 +25,10 @@ export class wordSentenceController {
     }
 
     @Get('/pagination')
-    async pagination(@Res() response: FastifyReply, @Query('type') type, @Query('page') page = 1, @Query() { limit = 5 }) {
+    async pagination(@Res() response: FastifyReply, @Query('type') type, @Query('collectionId') collectionId, @Query('page') page = 1, @Query() { limit = 5 }) {
         try {
             const skip = (page - 1) * limit;
-            const { data } = await this.wordSentenceService.pagination(skip, limit, type);
+            const { data } = await this.wordSentenceService.pagination(skip, limit, type, collectionId);
             return response.status(HttpStatus.OK).send({ status: 'success', data });
         } catch (error) {
             return response.status(HttpStatus.INTERNAL_SERVER_ERROR).send({

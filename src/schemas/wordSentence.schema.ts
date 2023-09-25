@@ -40,6 +40,10 @@ export class wordSentenceContent {
   @IsNumber()
   status: number;
 
+  @Prop({ type: Number })
+  @IsNumber()
+  index: number;
+
   @Prop({ default: now() })
   createdAt: Date;
 
