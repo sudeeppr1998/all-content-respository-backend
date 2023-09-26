@@ -67,4 +67,21 @@ export class wordSentenceService {
             return [];
         }
     }
+
+    async charNotPresent(tokenArr): Promise<any> {
+        if (tokenArr.length !== 0) {
+            let searchChar = tokenArr.join("");
+
+            const regexPattern = new RegExp(`.*${searchChar}.*`)
+            return await this.wordSentenceModel.find({
+                $nor: [
+                    { "data.en.text": { $regex: regexPattern } },
+                    { "data.hi.text": { $regex: regexPattern } },
+                    { "data.ta.text": { $regex: regexPattern } }
+                ]
+            }).exec();
+        } else {
+            return [];
+        }
+    }
 }

@@ -40,6 +40,22 @@ export class wordSentenceController {
         }
     }
 
+    @Post('charNotPresent')
+    async charNotPresentWordSentences(@Res() response: FastifyReply, @Body() tokenData: any) {
+        try {
+            const WordSentenceCollection = await this.wordSentenceService.charNotPresent(tokenData.tokenArr);
+            return response.status(HttpStatus.CREATED).send({
+                status: "success",
+                data: WordSentenceCollection,
+            });
+        } catch (error) {
+            return response.status(HttpStatus.INTERNAL_SERVER_ERROR).send({
+                status: "error",
+                message: "Server error - " + error
+            });
+        }
+    }
+
     @Get('/pagination')
     async pagination(@Res() response: FastifyReply, @Query('type') type, @Query('collectionId') collectionId, @Query('page') page = 1, @Query() { limit = 5 }) {
         try {
