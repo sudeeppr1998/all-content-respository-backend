@@ -46,4 +46,20 @@ export class wordSentenceService {
             status: 200,
         }
     }
+
+    async search(tokenArr): Promise<any> {
+        let searchChar = tokenArr.join("");
+        const regexPattern = new RegExp(`[${searchChar}]`);
+        return await this.wordSentenceModel.find({
+            "data": {
+                "$elemMatch": {
+                    "$or": [
+                        { "en.text": regexPattern },
+                        { "ta.text": regexPattern },
+                        { "hi.text": regexPattern }
+                    ]
+                }
+            }
+        }).exec();
+    }
 }
