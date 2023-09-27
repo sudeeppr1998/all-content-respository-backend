@@ -62,7 +62,7 @@ export class wordSentenceService {
                         ]
                     }
                 }
-            }).exec();
+            }).limit(5).exec();
         } else {
             return [];
         }
@@ -79,7 +79,7 @@ export class wordSentenceService {
                     { "data.hi.text": { $regex: regexPattern } },
                     { "data.ta.text": { $regex: regexPattern } }
                 ]
-            }).exec();
+            }).limit(5).exec();
         } else {
             return [];
         }
