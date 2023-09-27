@@ -50,19 +50,52 @@ export class wordSentenceService {
     async search(tokenArr): Promise<any> {
         if (tokenArr.length !== 0) {
             let searchChar = tokenArr.join("");
-
             const regexPattern = new RegExp(`[${searchChar}]`);
-            return await this.wordSentenceModel.find({
+            let wordsArr = [];
+            await this.wordSentenceModel.find({
                 "data": {
                     "$elemMatch": {
                         "$or": [
-                            { "en.text": regexPattern },
-                            { "ta.text": regexPattern },
-                            { "hi.text": regexPattern }
+                            { "en.text": { $regex: regexPattern } },
+                            { "ta.text": { $regex: regexPattern } },
+                            { "hi.text": { $regex: regexPattern } }
                         ]
                     }
+                },
+                "type": "Word"
+            }).exec().then((doc) => {
+                let hindiVowelSignArr = ["ा", "ि", "ी", "ु", "ू", "ृ", "े", "ै", "ो", "ौ", "ं", "ः", "ँ", "ॉ", "ों", "्", "़", "़ा"];
+                for (let docEle of doc) {
+                    let match = false;
+
+                    let prev = '';
+                    let textArr = [];
+                    for (let text of docEle.data[0]['hi']['text'].split("")) {
+                        if (hindiVowelSignArr.includes(text)) {
+                            let connect = prev + text;
+                            textArr.pop();
+                            textArr.push(connect);
+                        } else {
+                            textArr.push(text);
+                            prev = text;
+                        }
+                    }
+
+                    for (let tokenArrEle of tokenArr) {
+                        for (let textArrEle of textArr) {
+                            if (tokenArrEle === textArrEle) {
+                                match = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (match === true) {
+                        wordsArr.push(docEle);
+                    }
                 }
-            }).limit(5).exec();
+            })
+
+            return wordsArr;
         } else {
             return [];
         }
@@ -72,14 +105,49 @@ export class wordSentenceService {
         if (tokenArr.length !== 0) {
             let searchChar = tokenArr.join("");
 
-            const regexPattern = new RegExp(`.*${searchChar}.*`)
-            return await this.wordSentenceModel.find({
+            const regexPattern = new RegExp(`.*${searchChar}.*`);
+            let wordsArr = [];
+            await this.wordSentenceModel.find({
                 $nor: [
                     { "data.en.text": { $regex: regexPattern } },
                     { "data.hi.text": { $regex: regexPattern } },
                     { "data.ta.text": { $regex: regexPattern } }
-                ]
-            }).limit(5).exec();
+                ],
+                "type": "Word"
+            }).limit(10).exec().then((doc => {
+                let hindiVowelSignArr = ["ा", "ि", "ी", "ु", "ू", "ृ", "े", "ै", "ो", "ौ", "ं", "ः", "ँ", "ॉ", "ों", "्", "़", "़ा"];
+                for (let docEle of doc) {
+                    let match = false;
+
+                    let prev = '';
+                    let textArr = [];
+                    for (let text of docEle.data[0]['hi']['text'].split("")) {
+                        if (hindiVowelSignArr.includes(text)) {
+                            let connect = prev + text;
+                            textArr.pop();
+                            textArr.push(connect);
+                        } else {
+                            textArr.push(text);
+                            prev = text;
+                        }
+                    }
+
+                    for (let tokenArrEle of tokenArr) {
+                        for (let textArrEle of textArr) {
+                            if (tokenArrEle === textArrEle) {
+                                match = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (match === false) {
+                        wordsArr.push(docEle);
+                    }
+                }
+            }));
+
+            return wordsArr;
+
         } else {
             return [];
         }
