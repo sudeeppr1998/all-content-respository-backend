@@ -47,7 +47,7 @@ export class wordSentenceService {
         }
     }
 
-    async search(tokenArr): Promise<any> {
+    async search(tokenArr, language): Promise<any> {
         if (tokenArr.length !== 0) {
             let searchChar = tokenArr.join("");
             const regexPattern = new RegExp(`[${searchChar}]`);
@@ -64,33 +64,78 @@ export class wordSentenceService {
                 },
                 "type": "Word"
             }).exec().then((doc) => {
-                let hindiVowelSignArr = ["ा", "ि", "ी", "ु", "ू", "ृ", "े", "ै", "ो", "ौ", "ं", "ः", "ँ", "ॉ", "ों", "्", "़", "़ा"];
-                for (let docEle of doc) {
-                    let match = false;
+                if (language === 'hi') {
+                    let hindiVowelSignArr = ["ा", "ि", "ी", "ु", "ू", "ृ", "े", "ै", "ो", "ौ", "ं", "ः", "ँ", "ॉ", "ों", "्", "़", "़ा"];
+                    for (let docEle of doc) {
+                        let match = false;
 
-                    let prev = '';
-                    let textArr = [];
-                    for (let text of docEle.data[0]['hi']['text'].split("")) {
-                        if (hindiVowelSignArr.includes(text)) {
-                            let connect = prev + text;
-                            textArr.pop();
-                            textArr.push(connect);
-                        } else {
-                            textArr.push(text);
-                            prev = text;
-                        }
-                    }
-
-                    for (let tokenArrEle of tokenArr) {
-                        for (let textArrEle of textArr) {
-                            if (tokenArrEle === textArrEle) {
-                                match = true;
-                                break;
+                        let prev = '';
+                        let textArr = [];
+                        for (let text of docEle.data[0]['hi']['text'].split("")) {
+                            if (hindiVowelSignArr.includes(text)) {
+                                let connect = prev + text;
+                                textArr.pop();
+                                textArr.push(connect);
+                            } else {
+                                textArr.push(text);
+                                prev = text;
                             }
                         }
+
+                        for (let tokenArrEle of tokenArr) {
+                            for (let textArrEle of textArr) {
+                                if (tokenArrEle === textArrEle) {
+                                    match = true;
+                                    break;
+                                }
+                            }
+                        }
+                        if (match === true) {
+                            wordsArr.push(docEle);
+                        }
                     }
-                    if (match === true) {
-                        wordsArr.push(docEle);
+                } else if (language === 'ta') {
+                    let taVowelSignArr = [
+                        "ா",
+                        "ி",
+                        "ீ",
+                        "ு",
+                        "ூ",
+                        "ெ",
+                        "ே",
+                        "ை",
+                        "ொ",
+                        "ோ",
+                        "ௌ",
+                        "்",
+                    ]
+                    for (let docEle of doc) {
+                        let match = false;
+
+                        let prev = '';
+                        let textArr = [];
+                        for (let text of docEle.data[0]['ta']['text'].split("")) {
+                            if (taVowelSignArr.includes(text)) {
+                                let connect = prev + text;
+                                textArr.pop();
+                                textArr.push(connect);
+                            } else {
+                                textArr.push(text);
+                                prev = text;
+                            }
+                        }
+
+                        for (let tokenArrEle of tokenArr) {
+                            for (let textArrEle of textArr) {
+                                if (tokenArrEle === textArrEle) {
+                                    match = true;
+                                    break;
+                                }
+                            }
+                        }
+                        if (match === true) {
+                            wordsArr.push(docEle);
+                        }
                     }
                 }
             })

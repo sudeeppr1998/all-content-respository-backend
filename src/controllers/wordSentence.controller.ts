@@ -27,7 +27,7 @@ export class wordSentenceController {
     @Post('search')
     async searchWordSentences(@Res() response: FastifyReply, @Body() tokenData: any) {
         try {
-            const WordSentenceCollection = await this.wordSentenceService.search(tokenData.tokenArr);
+            const WordSentenceCollection = await this.wordSentenceService.search(tokenData.tokenArr, tokenData.language);
             return response.status(HttpStatus.CREATED).send({
                 status: "success",
                 data: WordSentenceCollection,
