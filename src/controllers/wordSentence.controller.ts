@@ -27,6 +27,9 @@ export class wordSentenceController {
     @Post('search')
     async searchWordSentences(@Res() response: FastifyReply, @Body() tokenData: any) {
         try {
+            if (tokenData.language === '' || tokenData.language === undefined) {
+                tokenData.language = 'ta'
+            }
             const WordSentenceCollection = await this.wordSentenceService.search(tokenData.tokenArr, tokenData.language);
             return response.status(HttpStatus.CREATED).send({
                 status: "success",
