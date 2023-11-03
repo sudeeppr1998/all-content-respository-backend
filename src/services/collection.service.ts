@@ -22,4 +22,8 @@ export class CollectionService {
         return await this.collectionModel.find().exec();
     }
 
+    async readbyLanguage(language): Promise<collectionSchema[]> {
+        return await this.collectionModel.find({ language: language }).exec();
+    }
+
 }

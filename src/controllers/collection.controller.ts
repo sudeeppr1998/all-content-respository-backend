@@ -35,4 +35,17 @@ export class CollectionController {
             });
         }
     }
+
+    @Get('/:language')
+    async fatchByLanguage(@Res() response: FastifyReply, @Param('language') language) {
+        try {
+            const data = await this.CollectionService.readbyLanguage(language);
+            return response.status(HttpStatus.OK).send({ status: 'success', data });
+        } catch (error) {
+            return response.status(HttpStatus.INTERNAL_SERVER_ERROR).send({
+                status: "error",
+                message: "Server error - " + error
+            });
+        }
+    }
 }
