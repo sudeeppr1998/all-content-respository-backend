@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, HttpStatus, Param, Post, Put, Query, Req, Res } from "@nestjs/common";
-import { collectionSchema } from "src/schemas/collection.schema";
+import { collection } from "src/schemas/collection.schema";
 import { CollectionService } from "src/services/collection.service";
 import { FastifyReply } from 'fastify';
 
@@ -8,7 +8,7 @@ export class CollectionController {
     constructor(private readonly CollectionService: CollectionService) { }
 
     @Post()
-    async create(@Res() response: FastifyReply, @Body() collection: collectionSchema) {
+    async create(@Res() response: FastifyReply, @Body() collection: collection) {
         try {
             const newCollection = await this.CollectionService.create(collection);
             return response.status(HttpStatus.CREATED).send({

@@ -1,14 +1,14 @@
 import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
-import { collectionSchema, collectionSchemaDocument } from "src/schemas/collection.schema";
+import { collection, collectionDocument } from "src/schemas/collection.schema";
 
 @Injectable()
 export class CollectionService {
 
-    constructor(@InjectModel(collectionSchema.name) private collectionModel: Model<collectionSchemaDocument>) { }
+    constructor(@InjectModel(collection.name) private collectionModel: Model<collectionDocument>) { }
 
-    async create(collection: collectionSchema): Promise<collectionSchema> {
+    async create(collection: collection): Promise<collection> {
         try {
             const newcollection = new this.collectionModel(collection);
             const savedData = newcollection.save();
@@ -18,11 +18,11 @@ export class CollectionService {
         }
     }
 
-    async readAll(): Promise<collectionSchema[]> {
+    async readAll(): Promise<collection[]> {
         return await this.collectionModel.find().exec();
     }
 
-    async readbyLanguage(language): Promise<collectionSchema[]> {
+    async readbyLanguage(language): Promise<collection[]> {
         return await this.collectionModel.find({ language: language }).exec();
     }
 
