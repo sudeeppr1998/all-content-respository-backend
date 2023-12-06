@@ -1,9 +1,9 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, now } from 'mongoose';
 import { v4 as uuidv4 } from 'uuid';
-import { IsNumber, IsString } from 'class-validator';
+import { IsNumber, IsOptional, IsString } from 'class-validator';
 
-@Schema()
+@Schema({ collection: 'collection' })
 export class collection {
     @Prop({ default: uuidv4 })
     collectionId: string;
@@ -13,6 +13,7 @@ export class collection {
     name: string;
 
     @Prop({ type: String, required: false })
+    @IsOptional()
     @IsString()
     description: string;
 
@@ -21,18 +22,22 @@ export class collection {
     category: string;
 
     @Prop({ type: String, required: false })
+    @IsOptional()
     @IsString()
     author: string;
 
     @Prop({ type: String, required: false })
+    @IsOptional()
     @IsString()
     publisher: string;
 
     @Prop({ type: String, required: false })
+    @IsOptional()
     @IsString()
     edition: string;
 
     @Prop({ type: String, required: false })
+    @IsOptional()
     @IsString()
     imagePath: string;
 
@@ -41,40 +46,43 @@ export class collection {
     language: string;
 
     @Prop({ type: String, required: false })
+    @IsOptional()
     @IsString()
     difficultyLevel: string;
 
     @Prop({ type: String, required: true })
-    @IsNumber()
+    @IsString()
     status: String;
 
     @Prop({ type: String, required: false })
+    @IsOptional()
     @IsString()
     ageGroup: string;
 
     @Prop({ type: String, required: false })
+    @IsOptional()
     @IsString()
     flaggedBy: string;
 
     @Prop({ type: String, required: false })
+    @IsOptional()
     @IsString()
     lastFlaggedOn: string;
 
     @Prop({ type: String, required: false })
+    @IsOptional()
     @IsString()
     flagReasons: string;
 
     @Prop({ type: String, required: false })
+    @IsOptional()
     @IsString()
     reviewer: string;
 
     @Prop({ type: String, required: false })
+    @IsOptional()
     @IsString()
     reviewStatus: string;
-
-    @Prop({ type: String, required: false })
-    @IsString()
-    difficulty: string;
 
     @Prop({ default: now() })
     createdAt: Date;

@@ -2,19 +2,60 @@ import { Body, Controller, Delete, Get, HttpStatus, Param, Post, Put, Query, Req
 import { content } from "../schemas/content.schema";
 import { contentService } from "../services/content.service";
 import { FastifyReply } from 'fastify';
+import { HttpService } from "@nestjs/axios";
+import { firstValueFrom, lastValueFrom, map } from "rxjs";
 
 
 @Controller('content')
 export class contentController {
-    constructor(private readonly contentService: contentService) { }
+    constructor(private readonly contentService: contentService, private readonly httpService: HttpService) { }
 
     @Post()
-    async create(@Res() response: FastifyReply, @Body() wordSentence: content) {
+    async create(@Res() response: FastifyReply, @Body() content: any) {
         try {
-            const newWordSentence = await this.contentService.create(wordSentence);
+            // const newContent = await this.contentService.create(wordSentence);
+
+            const url = process.env.ALL_LC_API_URL;
+
+            const updatedcontentSourceData = await Promise.all(content.contentSourceData.map(async (contentSourceDataEle) => {
+                const textData = {
+                    "request": {
+                        'language_id': contentSourceDataEle['language'],
+                        'text': contentSourceDataEle['text']
+                    }
+                };
+
+                const newContent = await lastValueFrom(
+                    this.httpService.post(url, JSON.stringify(textData), {
+                        headers: {
+                            'Content-Type': 'application/json',
+                        }
+                    }).pipe(
+                        map((resp) => resp.data)
+                    )
+                );
+
+                let newWordMeasures = Object.entries(newContent.result.wordMeasures).map((wordMeasuresEle) => {
+                    let wordComplexityMatrices: any = wordMeasuresEle[1];
+                    return { text: wordMeasuresEle[0], ...wordComplexityMatrices }
+                });
+
+                delete newContent.result.meanWordComplexity;
+                delete newContent.result.totalWordComplexity;
+                delete newContent.result.wordComplexityMap;
+
+                newContent.result.wordMeasures = newWordMeasures;
+
+                return { ...contentSourceDataEle, ...newContent.result };
+            }));
+
+            content.contentSourceData = updatedcontentSourceData;
+
+            const newContent = await this.contentService.create(content);
+
             return response.status(HttpStatus.CREATED).send({
                 status: "success",
-                data: newWordSentence,
+                data: newContent
             });
         } catch (error) {
             return response.status(HttpStatus.INTERNAL_SERVER_ERROR).send({
@@ -25,15 +66,15 @@ export class contentController {
     }
 
     @Post('search')
-    async searchWordSentences(@Res() response: FastifyReply, @Body() tokenData: any) {
+    async searchContent(@Res() response: FastifyReply, @Body() tokenData: any) {
         try {
             if (tokenData.language === '' || tokenData.language === undefined) {
                 tokenData.language = 'ta'
             }
-            const WordSentenceCollection = await this.contentService.search(tokenData.tokenArr, tokenData.language);
+            const contentCollection = await this.contentService.search(tokenData.tokenArr, tokenData.language);
             return response.status(HttpStatus.CREATED).send({
                 status: "success",
-                data: WordSentenceCollection,
+                data: contentCollection,
             });
         } catch (error) {
             return response.status(HttpStatus.INTERNAL_SERVER_ERROR).send({
@@ -44,12 +85,12 @@ export class contentController {
     }
 
     @Post('charNotPresent')
-    async charNotPresentWordSentences(@Res() response: FastifyReply, @Body() tokenData: any) {
+    async charNotPresentContent(@Res() response: FastifyReply, @Body() tokenData: any) {
         try {
-            const WordSentenceCollection = await this.contentService.charNotPresent(tokenData.tokenArr);
+            const contentCollection = await this.contentService.charNotPresent(tokenData.tokenArr);
             return response.status(HttpStatus.CREATED).send({
                 status: "success",
-                data: WordSentenceCollection,
+                data: contentCollection,
             });
         } catch (error) {
             return response.status(HttpStatus.INTERNAL_SERVER_ERROR).send({
@@ -88,15 +129,15 @@ export class contentController {
 
     @Get('/:id')
     async findById(@Res() response: FastifyReply, @Param('id') id) {
-        const wordSentence = await this.contentService.readById(id);
+        const content = await this.contentService.readById(id);
         return response.status(HttpStatus.OK).send({
-            wordSentence
+            content
         })
     }
 
     @Put('/:id')
-    async update(@Res() response: FastifyReply, @Param('id') id, @Body() wordSentence: content) {
-        const updated = await this.contentService.update(id, wordSentence);
+    async update(@Res() response: FastifyReply, @Param('id') id, @Body() content: content) {
+        const updated = await this.contentService.update(id, content);
         return response.status(HttpStatus.OK).send({
             updated
         })
