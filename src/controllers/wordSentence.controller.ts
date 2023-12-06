@@ -73,6 +73,20 @@ export class wordSentenceController {
         }
     }
 
+    @Get('/getRandomContent')
+    async getRandomContent(@Res() response: FastifyReply, @Query('type') type, @Query('language') language, @Query() { limit = 5 }) {
+        try {
+            let Batch: any = limit;
+            const { data } = await this.wordSentenceService.getRandomContent(parseInt(Batch), type, language);
+            return response.status(HttpStatus.OK).send({ status: 'success', data });
+        } catch (error) {
+            return response.status(HttpStatus.INTERNAL_SERVER_ERROR).send({
+                status: "error",
+                message: "Server error - " + error
+            });
+        }
+    }
+
     @Get()
     async fatchAll(@Res() response: FastifyReply) {
         try {

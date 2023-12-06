@@ -47,6 +47,35 @@ export class wordSentenceService {
         }
     }
 
+    async getRandomContent(
+        limit = 5,
+        type = 'Word',
+        language = 'ta'
+    ) {
+        const data = await this.wordSentenceModel.aggregate([
+            {
+                $match: {
+                    'type': type,
+                    'data': {
+                        $elemMatch: {
+                            [language]: { $exists: true }
+                        }
+                    }
+                    // 'data': {
+                    //     $elemMatch: {
+                    //         $and: [{ [language]: { $exists: true } }, { [language + '.text']: { $ne: null } }]
+                    //     }
+                    // }
+                }
+            },
+            { $sample: { size: limit } }
+        ]);;
+        return {
+            data: data,
+            status: 200,
+        }
+    }
+
     async search(tokenArr, language): Promise<any> {
         if (tokenArr.length !== 0) {
             let searchChar = tokenArr.join("");
