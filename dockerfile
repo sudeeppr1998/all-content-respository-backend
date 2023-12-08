@@ -16,6 +16,7 @@ COPY . .
 # Set environment variables
 ENV PORT=3008
 ENV MONGO_URL=
+ENV ALL_LC_API_URL=
 
 # Expose the port on which the application will run
 EXPOSE $PORT
