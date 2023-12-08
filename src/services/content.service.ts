@@ -19,16 +19,6 @@ export class contentService {
         }
     }
 
-    async getLC(data: any): Promise<any> {
-        try {
-            const newcontent = new this.content(content);
-            const savedData = newcontent.save();
-            return savedData;
-        } catch (error) {
-            return error;
-        }
-    }
-
     async readAll(): Promise<content[]> {
         return await this.content.find().exec();
     }
@@ -58,23 +48,117 @@ export class contentService {
         }
     }
 
-    async search(tokenArr, language): Promise<any> {
+    async getRandomContent(
+        limit = 5,
+        type = 'Word',
+        language = 'ta'
+    ) {
+        const data = await this.content.aggregate([
+            {
+                $match: {
+                    'contentType': type,
+                    'contentSourceData': {
+                        $elemMatch: {
+                            'language': language
+                        }
+                    }
+                }
+            },
+            { $sample: { size: limit } }
+        ]);
+        return {
+            data: data,
+            status: 200,
+        }
+    }
+
+    async getContentWord(
+        limit = 5,
+        language = 'ta'
+    ) {
+        const data = await this.content.aggregate([
+            {
+                $match: {
+                    'contentType': 'Word',
+                    'contentSourceData': {
+                        $elemMatch: {
+                            'language': language,
+                        }
+                    }
+                }
+            },
+            { $sample: { size: limit } }
+        ]);
+        return {
+            data: data,
+            status: 200,
+        }
+    }
+
+    async getContentSentence(
+        limit = 5,
+        language = 'ta'
+    ) {
+        const data = await this.content.aggregate([
+            {
+                $match: {
+                    'contentType': 'Sentence',
+                    'contentSourceData': {
+                        $elemMatch: {
+                            'language': language,
+                        }
+                    }
+                }
+            },
+            { $sample: { size: limit } }
+        ]);
+        return {
+            data: data,
+            status: 200,
+        }
+    }
+
+    async getContentParagraph(
+        limit = 5,
+        language = 'ta'
+    ) {
+        const data = await this.content.aggregate([
+            {
+                $match: {
+                    'contentType': 'Paragraph',
+                    'contentSourceData': {
+                        $elemMatch: {
+                            'language': language,
+                        }
+                    }
+                }
+            },
+            { $sample: { size: limit } }
+        ]);
+        return {
+            data: data,
+            status: 200,
+        }
+    }
+
+    async search(tokenArr, language = 'ta', contentType = 'Word', limit = 5): Promise<any> {
         if (tokenArr.length !== 0) {
             let searchChar = tokenArr.join("");
             const regexPattern = new RegExp(`[${searchChar}]`);
             let wordsArr = [];
-            await this.content.find({
-                "data": {
-                    "$elemMatch": {
-                        "$or": [
-                            { "en.text": { $regex: regexPattern } },
-                            { "ta.text": { $regex: regexPattern } },
-                            { "hi.text": { $regex: regexPattern } }
-                        ]
+            await this.content.aggregate([
+                {
+                    $match: {
+                        "contentSourceData": {
+                            $elemMatch: {
+                                "text": { $regex: regexPattern }
+                            }
+                        },
+                        "contentType": contentType
                     }
                 },
-                "type": "Word"
-            }).exec().then((doc) => {
+                { $sample: { size: 100 } }
+            ]).exec().then((doc) => {
                 if (language === 'hi') {
                     let hindiVowelSignArr = ["ा", "ि", "ी", "ु", "ू", "ृ", "े", "ै", "ो", "ौ", "ं", "ः", "ँ", "ॉ", "ों", "्", "़", "़ा"];
                     for (let docEle of doc) {
@@ -103,6 +187,9 @@ export class contentService {
                         }
                         if (match === true) {
                             wordsArr.push(docEle);
+                            if (wordsArr.length === limit) {
+                                break;
+                            }
                         }
                     }
                 } else if (language === 'ta') {
@@ -125,7 +212,8 @@ export class contentService {
 
                         let prev = '';
                         let textArr = [];
-                        for (let text of docEle.contentSourceData[0]['ta']['text'].split("")) {
+                        let contentText: any = docEle.contentSourceData[0]['text'];
+                        for (let text of contentText.split("")) {
                             if (taVowelSignArr.includes(text)) {
                                 let connect = prev + text;
                                 textArr.pop();
@@ -146,6 +234,9 @@ export class contentService {
                         }
                         if (match === true) {
                             wordsArr.push(docEle);
+                            if (wordsArr.length === limit) {
+                                break;
+                            }
                         }
                     }
                 }

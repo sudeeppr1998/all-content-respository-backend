@@ -68,10 +68,7 @@ export class contentController {
     @Post('search')
     async searchContent(@Res() response: FastifyReply, @Body() tokenData: any) {
         try {
-            if (tokenData.language === '' || tokenData.language === undefined) {
-                tokenData.language = 'ta'
-            }
-            const contentCollection = await this.contentService.search(tokenData.tokenArr, tokenData.language);
+            const contentCollection = await this.contentService.search(tokenData.tokenArr, tokenData.language, tokenData.contentType, tokenData.limit);
             return response.status(HttpStatus.CREATED).send({
                 status: "success",
                 data: contentCollection,
@@ -106,6 +103,80 @@ export class contentController {
             const skip = (page - 1) * limit;
             const { data } = await this.contentService.pagination(skip, limit, type, collectionId);
             return response.status(HttpStatus.OK).send({ status: 'success', data });
+        } catch (error) {
+            return response.status(HttpStatus.INTERNAL_SERVER_ERROR).send({
+                status: "error",
+                message: "Server error - " + error
+            });
+        }
+    }
+
+    @Get('/getRandomContent')
+    async getRandomContent(@Res() response: FastifyReply, @Query('type') type, @Query('language') language, @Query() { limit = 5 }) {
+        try {
+            let Batch: any = limit;
+            const { data } = await this.contentService.getRandomContent(parseInt(Batch), type, language);
+            return response.status(HttpStatus.OK).send({ status: 'success', data });
+        } catch (error) {
+            return response.status(HttpStatus.INTERNAL_SERVER_ERROR).send({
+                status: "error",
+                message: "Server error - " + error
+            });
+        }
+    }
+
+    @Get('/getContentWord')
+    async getContentWord(@Res() response: FastifyReply, @Query('language') language, @Query() { limit = 5 }) {
+        try {
+            let Batch: any = limit;
+            const { data } = await this.contentService.getContentWord(parseInt(Batch), language);
+            return response.status(HttpStatus.OK).send({ status: 'success', data });
+        } catch (error) {
+            return response.status(HttpStatus.INTERNAL_SERVER_ERROR).send({
+                status: "error",
+                message: "Server error - " + error
+            });
+        }
+    }
+
+
+    @Get('/getContentSentence')
+    async getContentSentence(@Res() response: FastifyReply, @Query('language') language, @Query() { limit = 5 }) {
+        try {
+            let Batch: any = limit;
+            const { data } = await this.contentService.getContentSentence(parseInt(Batch), language);
+            return response.status(HttpStatus.OK).send({ status: 'success', data });
+        } catch (error) {
+            return response.status(HttpStatus.INTERNAL_SERVER_ERROR).send({
+                status: "error",
+                message: "Server error - " + error
+            });
+        }
+    }
+
+    @Get('/getContentParagraph')
+    async getContentParagraph(@Res() response: FastifyReply, @Query('language') language, @Query() { limit = 5 }) {
+        try {
+            let Batch: any = limit;
+            const { data } = await this.contentService.getContentParagraph(parseInt(Batch), language);
+            return response.status(HttpStatus.OK).send({ status: 'success', data });
+        } catch (error) {
+            return response.status(HttpStatus.INTERNAL_SERVER_ERROR).send({
+                status: "error",
+                message: "Server error - " + error
+            });
+        }
+    }
+
+    @Post('/getContent')
+    async getContent(@Res() response: FastifyReply, @Body() queryData: any) {
+        try {
+            let Batch: any = queryData.limit || 5;
+            const contentCollection = await this.contentService.search(queryData.tokenArr, queryData.language, queryData.contentType, parseInt(Batch));
+            return response.status(HttpStatus.CREATED).send({
+                status: "success",
+                data: contentCollection,
+            });
         } catch (error) {
             return response.status(HttpStatus.INTERNAL_SERVER_ERROR).send({
                 status: "error",
