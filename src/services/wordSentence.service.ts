@@ -52,20 +52,18 @@ export class wordSentenceService {
         type = 'Word',
         language = 'ta'
     ) {
+        let langTextKey = language + ".audio";
+        // console.log(langTextKey);
         const data = await this.wordSentenceModel.aggregate([
             {
                 $match: {
                     'type': type,
                     'data': {
                         $elemMatch: {
-                            [language]: { $exists: true }
+                            [language]: { $exists: true },
+                            [langTextKey]: { "$nin": [null, "", " "] }
                         }
                     }
-                    // 'data': {
-                    //     $elemMatch: {
-                    //         $and: [{ [language]: { $exists: true } }, { [language + '.text']: { $ne: null } }]
-                    //     }
-                    // }
                 }
             },
             { $sample: { size: limit } }
