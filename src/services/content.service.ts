@@ -3,6 +3,7 @@ import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { content, contentDocument } from "../schemas/content.schema";
 import { HttpService } from "@nestjs/axios";
+import { join } from "path";
 
 @Injectable()
 export class contentService {
@@ -143,102 +144,72 @@ export class contentService {
 
     async search(tokenArr, language = 'ta', contentType = 'Word', limit = 5): Promise<any> {
         if (tokenArr.length !== 0) {
-            let searchChar = tokenArr.join("");
-            const regexPattern = new RegExp(`[${searchChar}]`);
+            let searchChar = tokenArr.join("|");
+
+            let unicodeArray = [];
+            for (let tokenArrEle of tokenArr) {
+                let unicodeCombination = '';
+                for (const [index, token] of tokenArrEle.split('').entries()) {
+                    let unicodeValue = "\\" + "u0" + token.charCodeAt(0).toString(16);
+                    unicodeCombination += index !== 0 ? '+' : '';
+                    unicodeCombination += unicodeValue;
+                }
+                unicodeArray.push(unicodeCombination);
+            }
+
+            const startWithRegexPattern = new RegExp(`[${tokenArr.join("")}]`, 'gu');
+            const inBetweenRegexPattern = new RegExp(`\\B(${searchChar})`, 'gu');
+
+            let batchLimitForEndWith = Math.trunc(limit / 2);
+            const batchLimitForStartWith = limit % 2 + batchLimitForEndWith;
+
             let wordsArr = [];
+
             await this.content.aggregate([
                 {
                     $match: {
                         "contentSourceData": {
                             $elemMatch: {
-                                "text": { $regex: regexPattern }
+                                "text": {
+                                    $regex: startWithRegexPattern
+                                }
                             }
                         },
                         "contentType": contentType
                     }
                 },
-                { $sample: { size: 100 } }
+                { $sample: { size: 10000 } }
             ]).exec().then((doc) => {
-                if (language === 'hi') {
-                    let hindiVowelSignArr = ["ा", "ि", "ी", "ु", "ू", "ृ", "े", "ै", "ो", "ौ", "ं", "ः", "ँ", "ॉ", "ों", "्", "़", "़ा"];
-                    for (let docEle of doc) {
-                        let match = false;
-
-                        let prev = '';
-                        let textArr = [];
-                        for (let text of docEle.contentSourceData[0]['hi']['text'].split("")) {
-                            if (hindiVowelSignArr.includes(text)) {
-                                let connect = prev + text;
-                                textArr.pop();
-                                textArr.push(connect);
-                            } else {
-                                textArr.push(text);
-                                prev = text;
-                            }
-                        }
-
-                        for (let tokenArrEle of tokenArr) {
-                            for (let textArrEle of textArr) {
-                                if (tokenArrEle === textArrEle) {
-                                    match = true;
-                                    break;
-                                }
-                            }
-                        }
-                        if (match === true) {
-                            wordsArr.push(docEle);
-                            if (wordsArr.length === limit) {
-                                break;
-                            }
+                for (let docEle of doc) {
+                    let regexMatchBegin = new RegExp(`^(?=(${unicodeArray.join('|')}))`, 'u');
+                    let text: string = docEle.contentSourceData[0]['text'].trim();
+                    let matchRes = text.match(regexMatchBegin);
+                    if (matchRes != null) {
+                        wordsArr.push(docEle);
+                        if (wordsArr.length === batchLimitForStartWith) {
+                            break;
                         }
                     }
-                } else if (language === 'ta') {
-                    let taVowelSignArr = [
-                        "ா",
-                        "ி",
-                        "ீ",
-                        "ு",
-                        "ூ",
-                        "ெ",
-                        "ே",
-                        "ை",
-                        "ொ",
-                        "ோ",
-                        "ௌ",
-                        "்",
-                    ]
-                    for (let docEle of doc) {
-                        let match = false;
+                }
+            })
 
-                        let prev = '';
-                        let textArr = [];
-                        let contentText: any = docEle.contentSourceData[0]['text'];
-                        for (let text of contentText.split("")) {
-                            if (taVowelSignArr.includes(text)) {
-                                let connect = prev + text;
-                                textArr.pop();
-                                textArr.push(connect);
-                            } else {
-                                textArr.push(text);
-                                prev = text;
-                            }
-                        }
+            batchLimitForEndWith = Math.abs(wordsArr.length - limit);
 
-                        for (let tokenArrEle of tokenArr) {
-                            for (let textArrEle of textArr) {
-                                if (tokenArrEle === textArrEle) {
-                                    match = true;
-                                    break;
-                                }
+            await this.content.aggregate([
+                {
+                    $match: {
+                        "contentSourceData": {
+                            $elemMatch: {
+                                "text": { $regex: inBetweenRegexPattern }
                             }
-                        }
-                        if (match === true) {
-                            wordsArr.push(docEle);
-                            if (wordsArr.length === limit) {
-                                break;
-                            }
-                        }
+                        },
+                        "contentType": contentType
                     }
+                },
+                { $sample: { size: batchLimitForEndWith } }
+            ]).exec().then((doc) => {
+                for (let docEle of doc) {
+                    wordsArr.push(docEle);
                 }
             })
 
