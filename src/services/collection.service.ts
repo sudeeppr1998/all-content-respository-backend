@@ -30,8 +30,14 @@ export class CollectionService {
         tags,
         language
     ) {
-        console.log(tags);
         const data = await this.collectionModel.aggregate([
+            {
+                $match:
+                {
+                    "tags": { $all: tags },
+                    "language": language
+                }
+            },
             {
                 $lookup:
                 {
@@ -40,15 +46,9 @@ export class CollectionService {
                     foreignField: "collectionId",
                     as: "content"
                 }
-            },
-            {
-                $match:
-                {
-                    "tags": { $in: tags },
-                    "language": language
-                }
-            },
-            { $sample: { size: 1 } }
+            }
+            // ,
+            // { $sample: { size: 1 } }
         ]);
         return {
             data: data,
