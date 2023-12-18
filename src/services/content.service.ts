@@ -176,7 +176,7 @@ export class contentService {
                         }
                     },
                     "contentType": contentType,
-                    tags: tags
+                    "tags": { $all: tags }
                 }
             } else {
                 query = {
