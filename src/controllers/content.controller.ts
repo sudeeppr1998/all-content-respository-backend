@@ -1,6 +1,7 @@
 import { Body, Controller, Delete, Get, HttpStatus, Param, Post, Put, Query, Req, Res } from "@nestjs/common";
 import { content } from "../schemas/content.schema";
 import { contentService } from "../services/content.service";
+import { CollectionService } from "../services/collection.service";
 import { FastifyReply } from 'fastify';
 import { HttpService } from "@nestjs/axios";
 import { firstValueFrom, lastValueFrom, map } from "rxjs";
@@ -8,7 +9,7 @@ import { firstValueFrom, lastValueFrom, map } from "rxjs";
 
 @Controller('content')
 export class contentController {
-    constructor(private readonly contentService: contentService, private readonly httpService: HttpService) { }
+    constructor(private readonly contentService: contentService, private readonly collectionService: CollectionService, private readonly httpService: HttpService) { }
 
     @Post()
     async create(@Res() response: FastifyReply, @Body() content: any) {
@@ -172,11 +173,24 @@ export class contentController {
     async getContent(@Res() response: FastifyReply, @Body() queryData: any) {
         try {
             let Batch: any = queryData.limit || 5;
-            const contentCollection = await this.contentService.search(queryData.tokenArr, queryData.language, queryData.contentType, parseInt(Batch));
+            const contentCollection = await this.contentService.search(queryData.tokenArr, queryData.language, queryData.contentType, parseInt(Batch), queryData.tags);
             return response.status(HttpStatus.CREATED).send({
                 status: "success",
                 data: contentCollection,
             });
+        } catch (error) {
+            return response.status(HttpStatus.INTERNAL_SERVER_ERROR).send({
+                status: "error",
+                message: "Server error - " + error
+            });
+        }
+    }
+
+    @Post('/getAssessment')
+    async getAssessment(@Res() response: FastifyReply, @Body() queryData: any) {
+        try {
+            const contentCollection = await this.collectionService.getAssessment(JSON.parse(queryData).tags, JSON.parse(queryData).language);
+            return response.status(HttpStatus.CREATED).send(contentCollection);
         } catch (error) {
             return response.status(HttpStatus.INTERNAL_SERVER_ERROR).send({
                 status: "error",

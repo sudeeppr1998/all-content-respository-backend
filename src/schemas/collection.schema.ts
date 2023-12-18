@@ -84,6 +84,9 @@ export class collection {
     @IsString()
     reviewStatus: string;
 
+    @Prop({ required: true })
+    tags: [string];
+
     @Prop({ default: now() })
     createdAt: Date;
 

@@ -73,6 +73,9 @@ export class content {
   @IsNumber()
   contentIndex: number;
 
+  @Prop({ required: true })
+  tags: [string];
+
   @Prop({ default: now() })
   createdAt: Date;
 

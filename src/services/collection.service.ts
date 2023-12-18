@@ -26,4 +26,34 @@ export class CollectionService {
         return await this.collectionModel.find({ language: language }).exec();
     }
 
+    async getAssessment(
+        tags,
+        language
+    ) {
+        console.log(tags);
+        const data = await this.collectionModel.aggregate([
+            {
+                $lookup:
+                {
+                    from: "content",
+                    localField: "collectionId",
+                    foreignField: "collectionId",
+                    as: "content"
+                }
+            },
+            {
+                $match:
+                {
+                    "tags": { $in: tags },
+                    "language": language
+                }
+            },
+            { $sample: { size: 1 } }
+        ]);
+        return {
+            data: data,
+            status: 200,
+        }
+    }
+
 }

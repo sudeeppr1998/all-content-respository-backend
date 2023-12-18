@@ -142,7 +142,7 @@ export class contentService {
         }
     }
 
-    async search(tokenArr, language = 'ta', contentType = 'Word', limit = 5): Promise<any> {
+    async search(tokenArr, language = 'ta', contentType = 'Word', limit = 5, tags = ''): Promise<any> {
         if (tokenArr.length !== 0) {
             let searchChar = tokenArr.join("|");
 
@@ -164,28 +164,46 @@ export class contentService {
             const batchLimitForStartWith = limit % 2 + batchLimitForEndWith;
 
             let wordsArr = [];
+            let query: any = {};
+
+            if (tags || tags.trim() !== '') {
+                query = {
+                    "contentSourceData": {
+                        $elemMatch: {
+                            "text": {
+                                $regex: startWithRegexPattern
+                            }
+                        }
+                    },
+                    "contentType": contentType,
+                    tags: tags
+                }
+            } else {
+                query = {
+                    "contentSourceData": {
+                        "$elemMatch": {
+                            "text": {
+                                $regex: startWithRegexPattern
+                            }
+                        }
+                    },
+                    "contentType": contentType,
+                }
+            }
 
             await this.content.aggregate([
                 {
-                    $match: {
-                        "contentSourceData": {
-                            $elemMatch: {
-                                "text": {
-                                    $regex: startWithRegexPattern
-                                }
-                            }
-                        },
-                        "contentType": contentType
-                    }
+                    $match: query
                 },
                 { $sample: { size: 10000 } }
             ]).exec().then((doc) => {
                 for (let docEle of doc) {
-                    let regexMatchBegin = new RegExp(`^(?=(${unicodeArray.join('|')}))`, 'u');
+                    let regexMatchBegin = new RegExp(`^(?=(${unicodeArray.join('|')}))`, 'gu');
                     let text: string = docEle.contentSourceData[0]['text'].trim();
                     let matchRes = text.match(regexMatchBegin);
                     if (matchRes != null) {
-                        wordsArr.push(docEle);
+                        let matchedChar = text.match(new RegExp(`(${unicodeArray.join('|')})`, 'gu'));
+                        wordsArr.push({ ...docEle, matchedChar: matchedChar });
                         if (wordsArr.length === batchLimitForStartWith) {
                             break;
                         }
@@ -195,21 +213,18 @@ export class contentService {
 
             batchLimitForEndWith = Math.abs(wordsArr.length - limit);
 
+            query.contentSourceData.$elemMatch.text = inBetweenRegexPattern
+
             await this.content.aggregate([
                 {
-                    $match: {
-                        "contentSourceData": {
-                            $elemMatch: {
-                                "text": { $regex: inBetweenRegexPattern }
-                            }
-                        },
-                        "contentType": contentType
-                    }
+                    $match: query
                 },
                 { $sample: { size: batchLimitForEndWith } }
             ]).exec().then((doc) => {
                 for (let docEle of doc) {
-                    wordsArr.push(docEle);
+                    let text: string = docEle.contentSourceData[0]['text'].trim();
+                    let matchedChar = text.match(new RegExp(`(${unicodeArray.join('|')})`, 'gu'));
+                    wordsArr.push({ ...docEle, matchedChar: matchedChar });
                 }
             })
 
