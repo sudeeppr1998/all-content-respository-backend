@@ -142,6 +142,158 @@ export class contentService {
         }
     }
 
+    async getContentLevelData(cLevel, complexityLevel, language, limit, contentType) {
+
+        let contentLevel = [
+            {
+                "level": 'L1',
+                "syllableCount": { "$eq": 2 },
+                "language": "ta",
+                "contentType": "Word"
+            },
+            {
+                "level": 'L2',
+                "syllableCount": { "$gte": 2, "$lte": 3 },
+                "language": "ta",
+                "contentType": "Word"
+            },
+            {
+                "level": 'L2',
+                "wordCount": { "$gte": 2, "$lte": 3 },
+                "language": "ta",
+                "contentType": "Sentence"
+            },
+            {
+                "level": 'L3',
+                "syllableCount": { "$gte": 3, "$lte": 4 },
+                "language": "ta",
+                "contentType": "Word"
+            },
+            {
+                "level": 'L3',
+                "wordCount": { "$gt": 3, "$lte": 5 },
+                "language": "ta",
+                "contentType": "Sentence"
+            },
+            {
+                "level": 'L4',
+                "wordCount": { "$gt": 5, "$lte": 7 },
+                "language": "ta",
+                "contentType": "Sentence"
+            },
+            {
+                "level": 'L5',
+                "wordCount": { "$gt": 7, "$lte": 10 },
+                "language": "ta",
+                "contentType": "Sentence"
+            }
+
+        ]
+
+        let complexity = [
+            {
+                level: 'C1',
+                totalOrthoComplexity: { "$gte": 0, "$lte": 30 },
+                totalPhonicComplexity: { "$gte": 0, "$lte": 2 },
+                language: "ta",
+                contentType: "Word"
+            },
+            {
+                level: 'C2',
+                totalOrthoComplexity: { "$gte": 30, "$lte": 60 },
+                totalPhonicComplexity: { "$gte": 0, "$lte": 8 },
+                language: "ta",
+                contentType: "Word"
+            },
+            {
+                level: 'C2',
+                totalOrthoComplexity: { "$gte": 0, "$lte": 100 },
+                totalPhonicComplexity: { "$gte": 0, "$lte": 20 },
+                meanComplexity: { "$gte": 0, "$lte": 50 },
+                language: "ta",
+                contentType: "Sentence"
+            },
+            {
+                level: 'C3',
+                totalOrthoComplexity: { "$gte": 60, "$lte": 100 },
+                totalPhonicComplexity: { "$gte": 0, "$lte": 15 },
+                language: "ta",
+                contentType: "Word"
+            },
+            {
+                level: 'C3',
+                totalOrthoComplexity: { "$gte": 100, "$lte": 140 },
+                totalPhonicComplexity: { "$gte": 20, "$lte": 50 },
+                meanComplexity: { "$gte": 50, "$lte": 100 },
+                language: "ta",
+                contentType: "Sentence"
+            },
+            {
+                level: 'C4',
+                totalOrthoComplexity: { "$gt": 100 },
+                totalPhonicComplexity: { "$gt": 15 },
+                language: "ta",
+                contentType: "Word"
+            },
+            {
+                level: 'C4',
+                totalOrthoComplexity: { "$gt": 140 },
+                totalPhonicComplexity: { "$gt": 50 },
+                meanComplexity: { "$gt": 100 },
+                language: "ta",
+                contentType: "Sentence"
+            }
+        ]
+
+        let queryParam = [];
+
+        queryParam.push(
+            ...contentLevel.filter((contentLevelEle) => {
+                return contentLevelEle.level === cLevel && contentLevelEle.contentType === contentType;
+            })
+        )
+
+        queryParam.push(
+            ...complexity.filter((complexityEle) => {
+                return complexityLevel.includes(complexityEle.level) && complexityEle.contentType === contentType;
+            })
+        )
+
+
+
+        let query = [];
+
+        for (let queryParamEle of queryParam) {
+            delete queryParamEle.level;
+            delete queryParamEle.contentType;
+            delete queryParamEle.language;
+            query.push(queryParamEle);
+        }
+
+        console.log(query);
+
+
+
+        const data = await this.content.aggregate([{
+            $match: {
+                "contentSourceData": {
+                    $elemMatch: {
+                        $or: query,
+                        "language": { $eq: language }
+                    }
+                },
+                "contentType": contentType
+            }
+        },
+        { $sample: { size: limit } }
+        ]);
+
+        return {
+            data: data,
+            status: 200,
+        }
+    }
+
     async search(tokenArr, language = 'ta', contentType = 'Word', limit = 5, tags = ''): Promise<any> {
         if (tokenArr.length !== 0) {
             let searchChar = tokenArr.join("|");
@@ -187,7 +339,7 @@ export class contentService {
                             }
                         }
                     },
-                    "contentType": contentType,
+                    "contentType": contentType
                 }
             }
 

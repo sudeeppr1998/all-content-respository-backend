@@ -133,6 +133,7 @@ export class contentController {
             const { data } = await this.contentService.getContentWord(parseInt(Batch), language);
             return response.status(HttpStatus.OK).send({ status: 'success', data });
         } catch (error) {
+
             return response.status(HttpStatus.INTERNAL_SERVER_ERROR).send({
                 status: "error",
                 message: "Server error - " + error
@@ -189,7 +190,7 @@ export class contentController {
     @Post('/getAssessment')
     async getAssessment(@Res() response: FastifyReply, @Body() queryData: any) {
         try {
-            const contentCollection = await this.collectionService.getAssessment(JSON.parse(queryData).tags, JSON.parse(queryData).language);
+            const contentCollection = await this.collectionService.getAssessment(queryData.tags, queryData.language);
             return response.status(HttpStatus.CREATED).send(contentCollection);
         } catch (error) {
             return response.status(HttpStatus.INTERNAL_SERVER_ERROR).send({
@@ -198,6 +199,24 @@ export class contentController {
             });
         }
     }
+
+    @Post('/getContentForMileStone')
+    async get(@Res() response: FastifyReply, @Body() queryData: any) {
+        try {
+            let Batch: any = queryData.limit || 5;
+            const contentCollection = await this.contentService.getContentLevelData(queryData.cLevel, queryData.complexityLevel, queryData.language, parseInt(Batch), queryData.contentType);
+            return response.status(HttpStatus.CREATED).send({
+                status: "success",
+                contentCollection,
+            });
+        } catch (error) {
+            return response.status(HttpStatus.INTERNAL_SERVER_ERROR).send({
+                status: "error",
+                message: "Server error - " + error
+            });
+        }
+    }
+
 
     @Get()
     async fatchAll(@Res() response: FastifyReply) {
