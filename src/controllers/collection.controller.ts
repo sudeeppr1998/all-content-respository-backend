@@ -2,7 +2,9 @@ import { Body, Controller, Delete, Get, HttpStatus, Param, Post, Put, Query, Req
 import { collection } from "src/schemas/collection.schema";
 import { CollectionService } from "src/services/collection.service";
 import { FastifyReply } from 'fastify';
+import { ApiBody, ApiExcludeEndpoint, ApiForbiddenResponse, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('collection')
 @Controller('collection')
 export class CollectionController {
     constructor(private readonly CollectionService: CollectionService) { }

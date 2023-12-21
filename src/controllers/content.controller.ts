@@ -5,8 +5,9 @@ import { CollectionService } from "../services/collection.service";
 import { FastifyReply } from 'fastify';
 import { HttpService } from "@nestjs/axios";
 import { firstValueFrom, lastValueFrom, map } from "rxjs";
+import { ApiBody, ApiExcludeEndpoint, ApiForbiddenResponse, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 
-
+@ApiTags('content')
 @Controller('content')
 export class contentController {
     constructor(private readonly contentService: contentService, private readonly collectionService: CollectionService, private readonly httpService: HttpService) { }
@@ -69,7 +70,7 @@ export class contentController {
     @Post('search')
     async searchContent(@Res() response: FastifyReply, @Body() tokenData: any) {
         try {
-            const contentCollection = await this.contentService.search(tokenData.tokenArr, tokenData.language, tokenData.contentType, tokenData.limit);
+            const contentCollection = await this.contentService.search(tokenData.tokenArr, tokenData.language, tokenData.contentType, tokenData.limit, tokenData.tags, tokenData.cLevel, tokenData.complexityLevel);
             return response.status(HttpStatus.CREATED).send({
                 status: "success",
                 data: contentCollection,
@@ -174,12 +175,13 @@ export class contentController {
     async getContent(@Res() response: FastifyReply, @Body() queryData: any) {
         try {
             let Batch: any = queryData.limit || 5;
-            const contentCollection = await this.contentService.search(queryData.tokenArr, queryData.language, queryData.contentType, parseInt(Batch), queryData.tags);
+            const contentCollection = await this.contentService.search(queryData.tokenArr, queryData.language, queryData.contentType, parseInt(Batch), queryData.tags, queryData.cLevel, queryData.complexityLevel);
             return response.status(HttpStatus.CREATED).send({
                 status: "success",
                 data: contentCollection,
             });
         } catch (error) {
+            console.log(error);
             return response.status(HttpStatus.INTERNAL_SERVER_ERROR).send({
                 status: "error",
                 message: "Server error - " + error

@@ -259,8 +259,6 @@ export class contentService {
             })
         )
 
-
-
         let query = [];
 
         for (let queryParamEle of queryParam) {
@@ -269,8 +267,6 @@ export class contentService {
             delete queryParamEle.language;
             query.push(queryParamEle);
         }
-
-        console.log(query);
 
 
 
@@ -294,8 +290,145 @@ export class contentService {
         }
     }
 
-    async search(tokenArr, language = 'ta', contentType = 'Word', limit = 5, tags = ''): Promise<any> {
+    async search(tokenArr, language = 'ta', contentType = 'Word', limit = 5, tags = '', cLevel, complexityLevel): Promise<any> {
         if (tokenArr.length !== 0) {
+
+            let mileStoneQuery = [];
+            let cLevelQuery: any;
+
+            if (cLevel != '' && complexityLevel.length != 0) {
+                let contentLevel = [
+                    {
+                        "level": 'L1',
+                        "syllableCount": { "$eq": 2 },
+                        "language": "ta",
+                        "contentType": "Word"
+                    },
+                    {
+                        "level": 'L2',
+                        "syllableCount": { "$gte": 2, "$lte": 3 },
+                        "language": "ta",
+                        "contentType": "Word"
+                    },
+                    {
+                        "level": 'L2',
+                        "wordCount": { "$gte": 2, "$lte": 3 },
+                        "language": "ta",
+                        "contentType": "Sentence"
+                    },
+                    {
+                        "level": 'L3',
+                        "syllableCount": { "$gte": 3, "$lte": 4 },
+                        "language": "ta",
+                        "contentType": "Word"
+                    },
+                    {
+                        "level": 'L3',
+                        "wordCount": { "$gt": 3, "$lte": 5 },
+                        "language": "ta",
+                        "contentType": "Sentence"
+                    },
+                    {
+                        "level": 'L4',
+                        "wordCount": { "$gt": 5, "$lte": 7 },
+                        "language": "ta",
+                        "contentType": "Sentence"
+                    },
+                    {
+                        "level": 'L5',
+                        "wordCount": { "$gt": 7, "$lte": 10 },
+                        "language": "ta",
+                        "contentType": "Sentence"
+                    }
+
+                ]
+
+                let complexity = [
+                    {
+                        level: 'C1',
+                        totalOrthoComplexity: { "$gte": 0, "$lte": 30 },
+                        totalPhonicComplexity: { "$gte": 0, "$lte": 2 },
+                        language: "ta",
+                        contentType: "Word"
+                    },
+                    {
+                        level: 'C2',
+                        totalOrthoComplexity: { "$gte": 30, "$lte": 60 },
+                        totalPhonicComplexity: { "$gte": 0, "$lte": 8 },
+                        language: "ta",
+                        contentType: "Word"
+                    },
+                    {
+                        level: 'C2',
+                        totalOrthoComplexity: { "$gte": 0, "$lte": 100 },
+                        totalPhonicComplexity: { "$gte": 0, "$lte": 20 },
+                        meanComplexity: { "$gte": 0, "$lte": 50 },
+                        language: "ta",
+                        contentType: "Sentence"
+                    },
+                    {
+                        level: 'C3',
+                        totalOrthoComplexity: { "$gte": 60, "$lte": 100 },
+                        totalPhonicComplexity: { "$gte": 0, "$lte": 15 },
+                        language: "ta",
+                        contentType: "Word"
+                    },
+                    {
+                        level: 'C3',
+                        totalOrthoComplexity: { "$gte": 100, "$lte": 140 },
+                        totalPhonicComplexity: { "$gte": 20, "$lte": 50 },
+                        meanComplexity: { "$gte": 50, "$lte": 100 },
+                        language: "ta",
+                        contentType: "Sentence"
+                    },
+                    {
+                        level: 'C4',
+                        totalOrthoComplexity: { "$gt": 100 },
+                        totalPhonicComplexity: { "$gt": 15 },
+                        language: "ta",
+                        contentType: "Word"
+                    },
+                    {
+                        level: 'C4',
+                        totalOrthoComplexity: { "$gt": 140 },
+                        totalPhonicComplexity: { "$gt": 50 },
+                        meanComplexity: { "$gt": 100 },
+                        language: "ta",
+                        contentType: "Sentence"
+                    }
+                ]
+
+                let contentQueryParam = [];
+                let complexityQueryParam = [];
+
+                contentQueryParam.push(
+                    ...contentLevel.filter((contentLevelEle) => {
+                        return contentLevelEle.level === cLevel && contentLevelEle.contentType === contentType;
+                    })
+                )
+
+                complexityQueryParam.push(
+                    ...complexity.filter((complexityEle) => {
+                        return complexityLevel.includes(complexityEle.level) && complexityEle.contentType === contentType;
+                    })
+                )
+
+                for (let contentQueryParamEle of contentQueryParam) {
+                    delete contentQueryParamEle.level;
+                    delete contentQueryParamEle.contentType;
+                    delete contentQueryParamEle.language;
+                    cLevelQuery = contentQueryParamEle;
+                }
+
+                for (let complexityQueryParamEle of complexityQueryParam) {
+                    delete complexityQueryParamEle.level;
+                    delete complexityQueryParamEle.contentType;
+                    delete complexityQueryParamEle.language;
+                    mileStoneQuery.push({ totalOrthoComplexity: complexityQueryParamEle.totalOrthoComplexity })
+                    mileStoneQuery.push({ totalPhonicComplexity: complexityQueryParamEle.totalPhonicComplexity });
+                }
+            }
+
             let searchChar = tokenArr.join("|");
 
             let unicodeArray = [];
@@ -324,22 +457,72 @@ export class contentService {
                         $elemMatch: {
                             "text": {
                                 $regex: startWithRegexPattern
-                            }
+                            },
+                            $and: [
+                                cLevelQuery,
+                                { $or: mileStoneQuery }
+                            ]
                         }
                     },
                     "contentType": contentType,
                     "tags": { $all: tags }
                 }
             } else {
-                query = {
-                    "contentSourceData": {
-                        "$elemMatch": {
-                            "text": {
-                                $regex: startWithRegexPattern
+                if (cLevelQuery === undefined && mileStoneQuery.length !== 0) {
+                    query = {
+                        "contentSourceData": {
+                            "$elemMatch": {
+                                "text": {
+                                    $regex: startWithRegexPattern
+                                },
+                                $or: mileStoneQuery
                             }
-                        }
-                    },
-                    "contentType": contentType
+                        },
+                        "contentType": contentType
+                    }
+                } else if (mileStoneQuery.length === 0 && cLevelQuery !== undefined) {
+                    query = {
+                        "contentSourceData": {
+                            "$elemMatch": {
+                                "text": {
+                                    $regex: startWithRegexPattern
+                                },
+                                $and: [
+                                    cLevelQuery
+                                ],
+
+                            }
+                        },
+                        "contentType": contentType
+                    }
+                } else if (mileStoneQuery.length === 0 && cLevelQuery === undefined) {
+                    query = {
+                        "contentSourceData": {
+                            "$elemMatch": {
+                                "text": {
+                                    $regex: startWithRegexPattern
+                                }
+                            }
+                        },
+                        "contentType": contentType
+                    }
+                }
+                else {
+                    query = {
+                        "contentSourceData": {
+                            "$elemMatch": {
+                                "text": {
+                                    $regex: startWithRegexPattern
+                                },
+                                $and: [
+                                    cLevelQuery,
+                                    { $or: mileStoneQuery }
+                                ],
+
+                            }
+                        },
+                        "contentType": contentType
+                    }
                 }
             }
 
@@ -380,9 +563,22 @@ export class contentService {
                 }
             })
 
-            return wordsArr;
+            let contentForToken = {};
+            for (let tokenArrEle of tokenArr) {
+                let contentForTokenArr = [];
+                for (let wordsArrEle of wordsArr) {
+                    for (let matchedCharEle of wordsArrEle.matchedChar) {
+                        if (matchedCharEle.match(new RegExp(`(${tokenArrEle})`, 'gu')) != null) {
+                            contentForTokenArr.push(wordsArrEle);
+                        }
+                    }
+                }
+                contentForToken[tokenArrEle] = contentForTokenArr;
+            }
+
+            return { wordsArr: wordsArr, contentForToken: contentForToken };
         } else {
-            return [];
+            return {};
         }
     }
 
