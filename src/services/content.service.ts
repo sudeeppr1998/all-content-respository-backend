@@ -573,7 +573,25 @@ export class contentService {
                         }
                     }
                 }
-                contentForToken[tokenArrEle] = contentForTokenArr;
+
+                if (contentForTokenArr.length === 0) {
+                    query.contentSourceData.$elemMatch.text = new RegExp(`(${tokenArrEle})`, 'gu')
+                    await this.content.aggregate([
+                        {
+                            $match: query
+                        },
+                        { $sample: { size: 2 } }
+                    ]).exec().then((doc) => {
+                        for (let docEle of doc) {
+                            let text: string = docEle.contentSourceData[0]['text'].trim();
+                            let matchedChar = text.match(new RegExp(`(${unicodeArray.join('|')})`, 'gu'));
+                            contentForTokenArr.push({ ...docEle, matchedChar: matchedChar });
+                        }
+                    })
+                    contentForToken[tokenArrEle] = contentForTokenArr;
+                } else {
+                    contentForToken[tokenArrEle] = contentForTokenArr;
+                }
             }
 
             return { wordsArr: wordsArr, contentForToken: contentForToken };
