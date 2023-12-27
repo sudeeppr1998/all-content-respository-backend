@@ -296,7 +296,7 @@ export class contentService {
             let mileStoneQuery = [];
             let cLevelQuery: any;
 
-            if (cLevel != '' && complexityLevel.length != 0) {
+            if (cLevel != '' || complexityLevel.length != 0) {
                 let contentLevel = [
                     {
                         "level": 'L1',
@@ -525,6 +525,8 @@ export class contentService {
                     }
                 }
             }
+
+
 
             await this.content.aggregate([
                 {
