@@ -305,6 +305,12 @@ export class contentService {
                         "contentType": "Word"
                     },
                     {
+                        "level": 'L1',
+                        "wordCount": { "$gte": 2, "$lte": 3 },
+                        "language": "ta",
+                        "contentType": "Sentence"
+                    },
+                    {
                         "level": 'L2',
                         "syllableCount": { "$gte": 2, "$lte": 3 },
                         "language": "ta",
@@ -350,6 +356,14 @@ export class contentService {
                         totalPhonicComplexity: { "$gte": 0, "$lte": 2 },
                         language: "ta",
                         contentType: "Word"
+                    },
+                    {
+                        level: 'C1',
+                        totalOrthoComplexity: { "$gte": 0, "$lte": 75 },
+                        totalPhonicComplexity: { "$gte": 0, "$lte": 20 },
+                        meanComplexity: { "$gte": 0, "$lte": 50 },
+                        language: "ta",
+                        contentType: "Sentence"
                     },
                     {
                         level: 'C2',
