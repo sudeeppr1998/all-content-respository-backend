@@ -38,7 +38,7 @@ export class CollectionController {
         }
     }
 
-    @Get('/:language')
+    @Get('/bylanguage/:language')
     async fatchByLanguage(@Res() response: FastifyReply, @Param('language') language) {
         try {
             const data = await this.CollectionService.readbyLanguage(language);
@@ -51,7 +51,7 @@ export class CollectionController {
         }
     }
 
-    @Get('/byid/:id')
+    @Get('/:id')
     async findById(@Res() response: FastifyReply, @Param('id') id) {
         const collection = await this.CollectionService.readById(id);
         return response.status(HttpStatus.OK).send({
