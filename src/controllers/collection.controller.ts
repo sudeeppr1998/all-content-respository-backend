@@ -50,4 +50,28 @@ export class CollectionController {
             });
         }
     }
+
+    @Get('/byid/:id')
+    async findById(@Res() response: FastifyReply, @Param('id') id) {
+        const collection = await this.CollectionService.readById(id);
+        return response.status(HttpStatus.OK).send({
+            collection
+        })
+    }
+
+    @Put('/:id')
+    async update(@Res() response: FastifyReply, @Param('id') id, @Body() collection: collection) {
+        const updated = await this.CollectionService.update(id, collection);
+        return response.status(HttpStatus.OK).send({
+            updated
+        })
+    }
+
+    @Delete('/:id')
+    async delete(@Res() response: FastifyReply, @Param('id') id) {
+        const deleted = await this.CollectionService.delete(id);
+        return response.status(HttpStatus.OK).send({
+            deleted
+        })
+    }
 }

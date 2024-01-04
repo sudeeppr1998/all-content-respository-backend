@@ -26,6 +26,18 @@ export class CollectionService {
         return await this.collectionModel.find({ language: language }).exec();
     }
 
+    async readById(id): Promise<collection> {
+        return await this.collectionModel.findById(id).exec();
+    }
+
+    async update(id, collection: collection): Promise<collection> {
+        return await this.collectionModel.findByIdAndUpdate(id, collection, { new: true })
+    }
+
+    async delete(id): Promise<any> {
+        return await this.collectionModel.findByIdAndRemove(id);
+    }
+
     async getAssessment(
         tags,
         language
