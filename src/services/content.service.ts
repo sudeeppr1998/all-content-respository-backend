@@ -481,6 +481,20 @@ export class contentService {
                     "contentType": contentType,
                     "tags": { $all: tags }
                 }
+            } else if (contentType === 'char') {
+                query = {
+                    "contentSourceData": {
+                        $elemMatch: {
+                            "text": {
+                                $regex: startWithRegexPattern
+                            },
+                            $and: [
+                                { "syllableCount": { "$eq": 1 } }
+                            ]
+                        }
+                    },
+                    "contentType": 'Word'
+                }
             } else {
                 if (cLevelQuery === undefined && mileStoneQuery.length !== 0) {
                     query = {
