@@ -594,35 +594,110 @@ export class contentService {
             })
 
             let contentForToken = {};
-            for (let tokenArrEle of tokenArr) {
-                let contentForTokenArr = [];
+
+            if (wordsArr.length > 0) {
+
+                let textSet = new Set();
+
                 for (let wordsArrEle of wordsArr) {
-                    for (let matchedCharEle of wordsArrEle.matchedChar) {
-                        if (matchedCharEle.match(new RegExp(`(${tokenArrEle})`, 'gu')) != null) {
-                            contentForTokenArr.push(wordsArrEle);
+                    for (let contentSourceDataEle of wordsArrEle.contentSourceData) {
+                        if (contentSourceDataEle.language === language) {
+                            textSet.add(contentSourceDataEle.text.trim());
                         }
                     }
                 }
 
-                if (contentForTokenArr.length === 0) {
-                    query.contentSourceData.$elemMatch.text = new RegExp(`(${tokenArrEle})`, 'gu')
-                    await this.content.aggregate([
-                        {
-                            $match: query
-                        },
-                        { $sample: { size: 2 } }
-                    ]).exec().then((doc) => {
-                        for (let docEle of doc) {
-                            let text: string = docEle.contentSourceData[0]['text'].trim();
-                            let matchedChar = text.match(new RegExp(`(${unicodeArray.join('|')})`, 'gu'));
-                            contentForTokenArr.push({ ...docEle, matchedChar: matchedChar });
+                if (textSet.size !== limit) {
+
+                    for (let textSetEle of textSet) {
+                        let repeatCounter = 0;
+                        let deleteFlag = false;
+                        for (let [wordArrEleIndex, wordsArrEle] of wordsArr.entries()) {
+
+                            if (wordsArrEle !== undefined) {
+                                for (let contentSourceDataEle of wordsArrEle["contentSourceData"]) {
+                                    if (contentSourceDataEle.language === language) {
+                                        if (contentSourceDataEle.text.trim() === textSetEle) {
+                                            if (repeatCounter === 1) {
+                                                deleteFlag = true;
+                                                break;
+                                            } else {
+                                                repeatCounter++;
+                                            }
+                                        }
+                                    }
+                                }
+
+                                if (deleteFlag === true) {
+
+                                    delete wordsArr[wordArrEleIndex];
+                                }
+                            }
+
                         }
-                    })
-                    contentForToken[tokenArrEle] = contentForTokenArr;
-                } else {
-                    contentForToken[tokenArrEle] = contentForTokenArr;
+                    }
+                }
+
+                //console.log(wordsArr);
+                wordsArr = wordsArr.filter(element => {
+                    return element !== undefined;
+                });
+
+
+                if (wordsArr.length !== limit) {
+                    let fetchlimit = limit - wordsArr.length
+
+                    if (contentType !== 'char') {
+                        await this.content.aggregate([
+                            {
+                                $match: query
+                            },
+                            { $sample: { size: fetchlimit } }
+                        ]).exec().then((doc) => {
+                            for (let docEle of doc) {
+                                let text: string = docEle.contentSourceData[0]['text'].trim();
+                                let matchedChar = text.match(new RegExp(`(${unicodeArray.join('|')})`, 'gu'));
+                                wordsArr.push({ ...docEle, matchedChar: matchedChar });
+                            }
+                        })
+                    }
+                }
+
+                for (let tokenArrEle of tokenArr) {
+                    let contentForTokenArr = [];
+                    for (let wordsArrEle of wordsArr) {
+                        if (wordsArrEle)
+                            for (let matchedCharEle of wordsArrEle.matchedChar) {
+                                if (matchedCharEle.match(new RegExp(`(${tokenArrEle})`, 'gu')) != null) {
+                                    contentForTokenArr.push(wordsArrEle);
+                                }
+                            }
+                    }
+
+                    if (contentForTokenArr.length === 0 && contentType !== 'char') {
+                        query.contentSourceData.$elemMatch.text = new RegExp(`(${tokenArrEle})`, 'gu')
+                        await this.content.aggregate([
+                            {
+                                $match: query
+                            },
+                            { $sample: { size: 2 } }
+                        ]).exec().then((doc) => {
+                            for (let docEle of doc) {
+                                let text: string = docEle.contentSourceData[0]['text'].trim();
+                                let matchedChar = text.match(new RegExp(`(${unicodeArray.join('|')})`, 'gu'));
+                                contentForTokenArr.push({ ...docEle, matchedChar: matchedChar });
+                            }
+                        })
+                        contentForToken[tokenArrEle] = contentForTokenArr;
+                    } else {
+                        contentForToken[tokenArrEle] = contentForTokenArr;
+                    }
                 }
             }
+
+
+
+
 
             return { wordsArr: wordsArr, contentForToken: contentForToken };
         } else {
