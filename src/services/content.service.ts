@@ -352,8 +352,8 @@ export class contentService {
                 let complexity = [
                     {
                         level: 'C1',
-                        totalOrthoComplexity: { "$gte": 0, "$lte": 30 },
-                        totalPhonicComplexity: { "$gte": 0, "$lte": 2 },
+                        totalOrthoComplexity: { "$gte": 0, "$lte": 2 },
+                        totalPhonicComplexity: { "$gte": 0, "$lte": 30 },
                         language: "ta",
                         contentType: "Word"
                     },
@@ -367,45 +367,45 @@ export class contentService {
                     },
                     {
                         level: 'C2',
-                        totalOrthoComplexity: { "$gte": 30, "$lte": 60 },
-                        totalPhonicComplexity: { "$gte": 0, "$lte": 8 },
+                        totalOrthoComplexity: { "$gte": 0, "$lte": 8 },
+                        totalPhonicComplexity: { "$gte": 30, "$lte": 60 },
                         language: "ta",
                         contentType: "Word"
                     },
                     {
                         level: 'C2',
-                        totalOrthoComplexity: { "$gte": 0, "$lte": 100 },
-                        totalPhonicComplexity: { "$gte": 0, "$lte": 20 },
+                        totalOrthoComplexity: { "$gte": 0, "$lte": 20 },
+                        totalPhonicComplexity: { "$gte": 0, "$lte": 100 },
                         meanComplexity: { "$gte": 0, "$lte": 50 },
                         language: "ta",
                         contentType: "Sentence"
                     },
                     {
                         level: 'C3',
-                        totalOrthoComplexity: { "$gte": 60, "$lte": 100 },
-                        totalPhonicComplexity: { "$gte": 0, "$lte": 15 },
+                        totalOrthoComplexity: { "$gte": 0, "$lte": 15 },
+                        totalPhonicComplexity: { "$gte": 60, "$lte": 100 },
                         language: "ta",
                         contentType: "Word"
                     },
                     {
                         level: 'C3',
-                        totalOrthoComplexity: { "$gte": 100, "$lte": 140 },
-                        totalPhonicComplexity: { "$gte": 20, "$lte": 50 },
+                        totalOrthoComplexity: { "$gte": 20, "$lte": 50 },
+                        totalPhonicComplexity: { "$gte": 100, "$lte": 140 },
                         meanComplexity: { "$gte": 50, "$lte": 100 },
                         language: "ta",
                         contentType: "Sentence"
                     },
                     {
                         level: 'C4',
-                        totalOrthoComplexity: { "$gt": 100 },
-                        totalPhonicComplexity: { "$gt": 15 },
+                        totalOrthoComplexity: { "$gt": 15 },
+                        totalPhonicComplexity: { "$gt": 100 },
                         language: "ta",
                         contentType: "Word"
                     },
                     {
                         level: 'C4',
-                        totalOrthoComplexity: { "$gt": 140 },
-                        totalPhonicComplexity: { "$gt": 50 },
+                        totalOrthoComplexity: { "$gt": 50 },
+                        totalPhonicComplexity: { "$gt": 140 },
                         meanComplexity: { "$gt": 100 },
                         language: "ta",
                         contentType: "Sentence"
@@ -438,8 +438,8 @@ export class contentService {
                     delete complexityQueryParamEle.level;
                     delete complexityQueryParamEle.contentType;
                     delete complexityQueryParamEle.language;
-                    mileStoneQuery.push({ totalOrthoComplexity: complexityQueryParamEle.totalOrthoComplexity })
                     mileStoneQuery.push({ totalPhonicComplexity: complexityQueryParamEle.totalPhonicComplexity });
+                    mileStoneQuery.push({ totalOrthoComplexity: complexityQueryParamEle.totalOrthoComplexity });
                 }
             }
 
