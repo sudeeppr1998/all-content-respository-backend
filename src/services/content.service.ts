@@ -489,7 +489,7 @@ export class contentService {
                                 $regex: startWithRegexPattern
                             },
                             $and: [
-                                { "syllableCount": { "$eq": 1 } }
+                                { "syllableCount": { "$eq": 2 } }
                             ]
                         }
                     },
