@@ -324,13 +324,13 @@ export class contentService {
                     },
                     {
                         "level": 'L3',
-                        "syllableCount": { "$gte": 3, "$lte": 4 },
+                        "syllableCount": { "$gte": 4 },
                         "language": "ta",
                         "contentType": "Word"
                     },
                     {
                         "level": 'L3',
-                        "wordCount": { "$gt": 3, "$lte": 5 },
+                        "wordCount": { "$gte": 4 },
                         "language": "ta",
                         "contentType": "Sentence"
                     },
@@ -341,12 +341,35 @@ export class contentService {
                         "contentType": "Sentence"
                     },
                     {
+                        "level": 'L4',
+                        "wordCount": { "$lte": 10 },
+                        "language": "ta",
+                        "contentType": "Paragraph"
+                    },
+                    {
                         "level": 'L5',
-                        "wordCount": { "$gt": 7, "$lte": 10 },
+                        "wordCount": { "$gt": 7 },
                         "language": "ta",
                         "contentType": "Sentence"
+                    },
+                    {
+                        "level": 'L5',
+                        "wordCount": { "$gt": 10, "$lte": 15 },
+                        "language": "ta",
+                        "contentType": "Paragraph"
+                    },
+                    {
+                        "level": 'L6',
+                        "wordCount": { "$gt": 7 },
+                        "language": "ta",
+                        "contentType": "Sentence"
+                    },
+                    {
+                        "level": 'L6',
+                        "wordCount": { "$gt": 15 },
+                        "language": "ta",
+                        "contentType": "Paragraph"
                     }
-
                 ]
 
                 let complexity = [
@@ -368,7 +391,7 @@ export class contentService {
                     {
                         level: 'C2',
                         totalOrthoComplexity: { "$gte": 0, "$lte": 8 },
-                        totalPhonicComplexity: { "$gte": 30, "$lte": 60 },
+                        totalPhonicComplexity: { "$gte": 0, "$lte": 60 },
                         language: "ta",
                         contentType: "Word"
                     },
@@ -383,14 +406,14 @@ export class contentService {
                     {
                         level: 'C3',
                         totalOrthoComplexity: { "$gte": 0, "$lte": 15 },
-                        totalPhonicComplexity: { "$gte": 60, "$lte": 100 },
+                        totalPhonicComplexity: { "$gte": 0, "$lte": 100 },
                         language: "ta",
                         contentType: "Word"
                     },
                     {
                         level: 'C3',
                         totalOrthoComplexity: { "$gte": 20, "$lte": 50 },
-                        totalPhonicComplexity: { "$gte": 100, "$lte": 140 },
+                        totalPhonicComplexity: { "$lte": 200 },
                         meanComplexity: { "$gte": 50, "$lte": 100 },
                         language: "ta",
                         contentType: "Sentence"
@@ -405,7 +428,7 @@ export class contentService {
                     {
                         level: 'C4',
                         totalOrthoComplexity: { "$gt": 50 },
-                        totalPhonicComplexity: { "$gt": 140 },
+                        totalPhonicComplexity: { "$gt": 200 },
                         meanComplexity: { "$gt": 100 },
                         language: "ta",
                         contentType: "Sentence"
