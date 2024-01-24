@@ -330,7 +330,7 @@ export class contentService {
                     },
                     {
                         "level": 'L3',
-                        "wordCount": { "$gte": 4 },
+                        "wordCount": { "$lte": 5 },
                         "language": "ta",
                         "contentType": "Sentence"
                     },
@@ -348,7 +348,7 @@ export class contentService {
                     },
                     {
                         "level": 'L5',
-                        "wordCount": { "$gt": 7 },
+                        "wordCount": { "$gte": 7, "$lte": 10 },
                         "language": "ta",
                         "contentType": "Sentence"
                     },
@@ -360,7 +360,7 @@ export class contentService {
                     },
                     {
                         "level": 'L6',
-                        "wordCount": { "$gt": 7 },
+                        "wordCount": { "$gte": 7, "$lte": 12 },
                         "language": "ta",
                         "contentType": "Sentence"
                     },
