@@ -330,7 +330,7 @@ export class contentService {
                     },
                     {
                         "level": 'L3',
-                        "wordCount": { "$lte": 5 },
+                        "wordCount": { "$gt": 2, "$lte": 5 },
                         "language": "ta",
                         "contentType": "Sentence"
                     },
