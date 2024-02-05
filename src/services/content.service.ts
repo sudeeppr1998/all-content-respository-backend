@@ -319,6 +319,7 @@ export class contentService {
                     {
                         "level": 'L2',
                         "wordCount": { "$gte": 2, "$lte": 3 },
+                        "syllableCount": { "$lte": 8 },
                         "language": "ta",
                         "contentType": "Sentence"
                     },
@@ -331,12 +332,14 @@ export class contentService {
                     {
                         "level": 'L3',
                         "wordCount": { "$gt": 2, "$lte": 5 },
+                        "syllableCount": { "$lte": 15 },
                         "language": "ta",
                         "contentType": "Sentence"
                     },
                     {
                         "level": 'L4',
                         "wordCount": { "$gt": 5, "$lte": 7 },
+                        "syllableCount": { "$lte": 20 },
                         "language": "ta",
                         "contentType": "Sentence"
                     },
