@@ -15,11 +15,10 @@ export class contentController {
     @Post()
     async create(@Res() response: FastifyReply, @Body() content: any) {
         try {
-            // const newContent = await this.contentService.create(wordSentence);
-
-            const url = process.env.ALL_LC_API_URL;
-
             const updatedcontentSourceData = await Promise.all(content.contentSourceData.map(async (contentSourceDataEle) => {
+
+                const url = process.env.ALL_LC_API_URL + contentSourceDataEle['language'];
+
                 const textData = {
                     "request": {
                         'language_id': contentSourceDataEle['language'],
