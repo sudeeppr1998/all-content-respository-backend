@@ -20,7 +20,8 @@ export class contentController {
                 "ta",
                 "ka",
                 "hi",
-                "te"
+                "te",
+                "kn"
             ]
 
             const updatedcontentSourceData = await Promise.all(content.contentSourceData.map(async (contentSourceDataEle) => {
@@ -35,7 +36,7 @@ export class contentController {
                     const url = process.env.ALL_LC_API_URL + contentLanguage;
                     const textData = {
                         "request": {
-                            'language_id': contentSourceDataEle['language'],
+                            'language_id': contentLanguage,
                             'text': contentSourceDataEle['text']
                         }
                     };
