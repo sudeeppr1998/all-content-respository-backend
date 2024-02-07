@@ -15,39 +15,56 @@ export class contentController {
     @Post()
     async create(@Res() response: FastifyReply, @Body() content: any) {
         try {
+
+            let lcSupportedLanguages = [
+                "ta",
+                "ka",
+                "hi",
+                "te"
+            ]
+
             const updatedcontentSourceData = await Promise.all(content.contentSourceData.map(async (contentSourceDataEle) => {
 
-                const url = process.env.ALL_LC_API_URL + contentSourceDataEle['language'];
+                if (lcSupportedLanguages.includes(contentSourceDataEle['language'])) {
+                    let contentLanguage = contentSourceDataEle['language'];
 
-                const textData = {
-                    "request": {
-                        'language_id': contentSourceDataEle['language'],
-                        'text': contentSourceDataEle['text']
+                    if (contentSourceDataEle['language'] === "kn") {
+                        contentLanguage = "ka";
                     }
-                };
 
-                const newContent = await lastValueFrom(
-                    this.httpService.post(url, JSON.stringify(textData), {
-                        headers: {
-                            'Content-Type': 'application/json',
+                    const url = process.env.ALL_LC_API_URL + contentLanguage;
+                    const textData = {
+                        "request": {
+                            'language_id': contentSourceDataEle['language'],
+                            'text': contentSourceDataEle['text']
                         }
-                    }).pipe(
-                        map((resp) => resp.data)
-                    )
-                );
+                    };
 
-                let newWordMeasures = Object.entries(newContent.result.wordMeasures).map((wordMeasuresEle) => {
-                    let wordComplexityMatrices: any = wordMeasuresEle[1];
-                    return { text: wordMeasuresEle[0], ...wordComplexityMatrices }
-                });
+                    const newContent = await lastValueFrom(
+                        this.httpService.post(url, JSON.stringify(textData), {
+                            headers: {
+                                'Content-Type': 'application/json',
+                            }
+                        }).pipe(
+                            map((resp) => resp.data)
+                        )
+                    );
 
-                delete newContent.result.meanWordComplexity;
-                delete newContent.result.totalWordComplexity;
-                delete newContent.result.wordComplexityMap;
+                    let newWordMeasures = Object.entries(newContent.result.wordMeasures).map((wordMeasuresEle) => {
+                        let wordComplexityMatrices: any = wordMeasuresEle[1];
+                        return { text: wordMeasuresEle[0], ...wordComplexityMatrices }
+                    });
 
-                newContent.result.wordMeasures = newWordMeasures;
+                    delete newContent.result.meanWordComplexity;
+                    delete newContent.result.totalWordComplexity;
+                    delete newContent.result.wordComplexityMap;
 
-                return { ...contentSourceDataEle, ...newContent.result };
+                    newContent.result.wordMeasures = newWordMeasures;
+
+                    return { ...contentSourceDataEle, ...newContent.result };
+                } else {
+                    return { ...contentSourceDataEle }
+                }
             }));
 
             content.contentSourceData = updatedcontentSourceData;
