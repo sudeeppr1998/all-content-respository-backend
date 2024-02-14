@@ -320,6 +320,13 @@ export class contentService {
                         "level": 'L2',
                         "wordCount": { "$gte": 2, "$lte": 3 },
                         "syllableCount": { "$lte": 8 },
+                        "syllableCountArray": {
+                            $not: {
+                                $elemMatch: {
+                                    "v": { $gte: 5 }
+                                }
+                            }
+                        },
                         "language": "ta",
                         "contentType": "Sentence"
                     },
@@ -334,6 +341,13 @@ export class contentService {
                         "wordCount": { "$gt": 2, "$lte": 5 },
                         "syllableCount": { "$lte": 15 },
                         "language": "ta",
+                        "syllableCountArray": {
+                            $not: {
+                                $elemMatch: {
+                                    "v": { $gte: 7 }
+                                }
+                            }
+                        },
                         "contentType": "Sentence"
                     },
                     {
@@ -341,6 +355,13 @@ export class contentService {
                         "wordCount": { "$gt": 5, "$lte": 7 },
                         "syllableCount": { "$lte": 20 },
                         "language": "ta",
+                        "syllableCountArray": {
+                            $not: {
+                                $elemMatch: {
+                                    "v": { $gte: 10 }
+                                }
+                            }
+                        },
                         "contentType": "Sentence"
                     },
                     {
@@ -584,6 +605,24 @@ export class contentService {
 
             await this.content.aggregate([
                 {
+                    $addFields: {
+                        "contentSourceData": {
+                            $map: {
+                                input: "$contentSourceData",
+                                as: "elem",
+                                in: {
+                                    $mergeObjects: [
+                                        "$$elem",
+                                        {
+                                            "syllableCountArray": { $objectToArray: "$$elem.syllableCountMap" }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                {
                     $match: query
                 },
                 { $sample: { size: 10000 } }
@@ -607,6 +646,24 @@ export class contentService {
             query.contentSourceData.$elemMatch.text = inBetweenRegexPattern
 
             await this.content.aggregate([
+                {
+                    $addFields: {
+                        "contentSourceData": {
+                            $map: {
+                                input: "$contentSourceData",
+                                as: "elem",
+                                in: {
+                                    $mergeObjects: [
+                                        "$$elem",
+                                        {
+                                            "syllableCountArray": { $objectToArray: "$$elem.syllableCountMap" }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
                 {
                     $match: query
                 },
@@ -676,6 +733,24 @@ export class contentService {
                     if (contentType !== 'char') {
                         await this.content.aggregate([
                             {
+                                $addFields: {
+                                    "contentSourceData": {
+                                        $map: {
+                                            input: "$contentSourceData",
+                                            as: "elem",
+                                            in: {
+                                                $mergeObjects: [
+                                                    "$$elem",
+                                                    {
+                                                        "syllableCountArray": { $objectToArray: "$$elem.syllableCountMap" }
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            {
                                 $match: query
                             },
                             { $sample: { size: fetchlimit } }
@@ -703,6 +778,24 @@ export class contentService {
                     if (contentForTokenArr.length === 0 && contentType !== 'char') {
                         query.contentSourceData.$elemMatch.text = new RegExp(`(${tokenArrEle})`, 'gu')
                         await this.content.aggregate([
+                            {
+                                $addFields: {
+                                    "contentSourceData": {
+                                        $map: {
+                                            input: "$contentSourceData",
+                                            as: "elem",
+                                            in: {
+                                                $mergeObjects: [
+                                                    "$$elem",
+                                                    {
+                                                        "syllableCountArray": { $objectToArray: "$$elem.syllableCountMap" }
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    }
+                                }
+                            },
                             {
                                 $match: query
                             },
