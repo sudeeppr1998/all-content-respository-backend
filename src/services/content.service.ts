@@ -323,7 +323,7 @@ export class contentService {
                         "syllableCountArray": {
                             $not: {
                                 $elemMatch: {
-                                    "v": { $gte: 5 }
+                                    "v": { $gte: 3 }
                                 }
                             }
                         },
@@ -344,7 +344,7 @@ export class contentService {
                         "syllableCountArray": {
                             $not: {
                                 $elemMatch: {
-                                    "v": { $gte: 7 }
+                                    "v": { $gte: 5 }
                                 }
                             }
                         },
@@ -358,7 +358,7 @@ export class contentService {
                         "syllableCountArray": {
                             $not: {
                                 $elemMatch: {
-                                    "v": { $gte: 10 }
+                                    "v": { $gte: 7 }
                                 }
                             }
                         },
