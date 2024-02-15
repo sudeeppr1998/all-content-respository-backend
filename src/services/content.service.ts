@@ -323,7 +323,7 @@ export class contentService {
                         "syllableCountArray": {
                             $not: {
                                 $elemMatch: {
-                                    "v": { $gte: 3 }
+                                    "v": { $gte: 4 }
                                 }
                             }
                         },
