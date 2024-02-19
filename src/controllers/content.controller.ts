@@ -50,7 +50,7 @@ export class contentController {
                             map((resp) => resp.data)
                         )
                     );
-                
+
 
                     let newWordMeasures = Object.entries(newContent.result.wordMeasures).map((wordMeasuresEle) => {
                         let wordComplexityMatrices: any = wordMeasuresEle[1];
@@ -64,10 +64,30 @@ export class contentController {
                     newContent.result.wordMeasures = newWordMeasures;
 
                     return { ...contentSourceDataEle, ...newContent.result };
+                } else if (contentSourceDataEle['language'] === "en") {
+                    const url = process.env.ALL_TEXT_EVAL_URL + 'getPhonemes';
+                    const textData = {
+                        "request": {
+                            'text': contentSourceDataEle['text']
+                        }
+                    };
+
+                    const newContent = await lastValueFrom(
+                        this.httpService.post(url, JSON.stringify(textData), {
+                            headers: {
+                                'Content-Type': 'application/json',
+                            }
+                        }).pipe(
+                            map((resp) => resp.data)
+                        )
+                    );
+
+                    return { ...contentSourceDataEle, ...newContent };
                 } else {
                     return { ...contentSourceDataEle }
                 }
             }));
+
             content.contentSourceData = updatedcontentSourceData;
 
             const newContent = await this.contentService.create(content);
