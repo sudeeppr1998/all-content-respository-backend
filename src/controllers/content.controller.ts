@@ -66,10 +66,9 @@ export class contentController {
                     return { ...contentSourceDataEle, ...newContent.result };
                 } else if (contentSourceDataEle['language'] === "en") {
                     const url = process.env.ALL_TEXT_EVAL_URL + 'getPhonemes';
+
                     const textData = {
-                        "request": {
-                            'text': contentSourceDataEle['text']
-                        }
+                        'text': contentSourceDataEle['text']
                     };
 
                     const newContent = await lastValueFrom(
