@@ -817,17 +817,153 @@ export class contentService {
                 return { wordsArr: wordsArr, contentForToken: contentForToken };
             } else if (language === "en") {
                 let wordsArr = [];
+                let cLevelQuery: any;
+
+                if (cLevel != '') {
+                    let contentLevel = [
+                        {
+                            "level": 'L1',
+                            "syllableCount": { "$eq": 2 },
+                            "language": "ta",
+                            "contentType": "Word"
+                        },
+                        {
+                            "level": 'L1',
+                            "wordCount": { "$gte": 2, "$lte": 3 },
+                            "language": "ta",
+                            "contentType": "Sentence"
+                        },
+                        {
+                            "level": 'L2',
+                            "syllableCount": { "$gte": 2, "$lte": 3 },
+                            "language": "ta",
+                            "contentType": "Word"
+                        },
+                        {
+                            "level": 'L2',
+                            "wordCount": { "$gte": 2, "$lte": 3 },
+                            "syllableCount": { "$lte": 8 },
+                            "syllableCountArray": {
+                                $not: {
+                                    $elemMatch: {
+                                        "v": { $gte: 4 }
+                                    }
+                                }
+                            },
+                            "language": "ta",
+                            "contentType": "Sentence"
+                        },
+                        {
+                            "level": 'L3',
+                            "syllableCount": { "$gte": 4 },
+                            "language": "ta",
+                            "contentType": "Word"
+                        },
+                        {
+                            "level": 'L3',
+                            "wordCount": { "$gt": 2, "$lte": 5 },
+                            "syllableCount": { "$lte": 15 },
+                            "language": "ta",
+                            "syllableCountArray": {
+                                $not: {
+                                    $elemMatch: {
+                                        "v": { $gte: 5 }
+                                    }
+                                }
+                            },
+                            "contentType": "Sentence"
+                        },
+                        {
+                            "level": 'L4',
+                            "wordCount": { "$gt": 5, "$lte": 7 },
+                            "syllableCount": { "$lte": 20 },
+                            "language": "ta",
+                            "syllableCountArray": {
+                                $not: {
+                                    $elemMatch: {
+                                        "v": { $gte: 7 }
+                                    }
+                                }
+                            },
+                            "contentType": "Sentence"
+                        },
+                        {
+                            "level": 'L4',
+                            "wordCount": { "$lte": 10 },
+                            "language": "ta",
+                            "contentType": "Paragraph"
+                        },
+                        {
+                            "level": 'L5',
+                            "wordCount": { "$gte": 7, "$lte": 10 },
+                            "language": "ta",
+                            "contentType": "Sentence"
+                        },
+                        {
+                            "level": 'L5',
+                            "wordCount": { "$gt": 10, "$lte": 15 },
+                            "language": "ta",
+                            "contentType": "Paragraph"
+                        },
+                        {
+                            "level": 'L6',
+                            "wordCount": { "$gte": 7, "$lte": 12 },
+                            "language": "ta",
+                            "contentType": "Sentence"
+                        },
+                        {
+                            "level": 'L6',
+                            "wordCount": { "$gt": 15 },
+                            "language": "ta",
+                            "contentType": "Paragraph"
+                        }
+                    ]
+
+                    let contentQueryParam = [];
+
+                    contentQueryParam.push(
+                        ...contentLevel.filter((contentLevelEle) => {
+                            return contentLevelEle.level === cLevel && contentLevelEle.contentType === contentType;
+                        })
+                    )
+
+                    for (let contentQueryParamEle of contentQueryParam) {
+                        delete contentQueryParamEle.level;
+                        delete contentQueryParamEle.contentType;
+                        delete contentQueryParamEle.language;
+                        cLevelQuery = contentQueryParamEle;
+                    }
+                }
 
                 let query = {
                     "contentSourceData": {
                         "$elemMatch": {
                             "phonemes": { "$in": tokenArr },
+                            $and: [cLevelQuery]
                         }
                     },
                     "contentType": contentType
                 }
 
                 await this.content.aggregate([
+                    {
+                        $addFields: {
+                            "contentSourceData": {
+                                $map: {
+                                    input: "$contentSourceData",
+                                    as: "elem",
+                                    in: {
+                                        $mergeObjects: [
+                                            "$$elem",
+                                            {
+                                                "syllableCountArray": { $objectToArray: "$$elem.syllableCountMap" }
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    },
                     {
                         $match: query
                     },
