@@ -819,6 +819,10 @@ export class contentService {
                 let wordsArr = [];
                 let cLevelQuery: any;
 
+                if (contentType.toLocaleLowerCase() === 'char') {
+                    contentType = 'Word'
+                }
+
                 if (cLevel != '') {
                     let contentLevel = [
                         {
