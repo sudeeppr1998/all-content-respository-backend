@@ -85,7 +85,7 @@ export class contentController {
 
                     let totalWordCount = text.split(" ").length;
 
-                    let totalSyllableCount = Array.from(new Set(text.toLowerCase().replace(/\s+/g, '').split(""))).length;
+                    let totalSyllableCount = text.toLowerCase().replace(/\s+/g, '').split("").length;
 
                     function countWordFrequency(text) {
                         // Convert text to lowercase and split it into words
