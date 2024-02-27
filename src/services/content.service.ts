@@ -290,7 +290,7 @@ export class contentService {
         }
     }
 
-    async search(tokenArr, language = 'ta', contentType = 'Word', limit = 5, tags = '', cLevel, complexityLevel): Promise<any> {
+    async search(tokenArr, language = 'ta', contentType = 'Word', limit = 5, tags = '', cLevel, complexityLevel, graphemesMappedObj): Promise<any> {
         // if (tokenArr.length !== 0) {
 
         if (language !== 'en') {
@@ -992,6 +992,8 @@ export class contentService {
 
             query.contentSourceData.$elemMatch['language'] = language;
 
+            let allTokenGraphemes = [];
+
             await this.content.aggregate([
                 {
                     $addFields: {
@@ -1017,8 +1019,13 @@ export class contentService {
                 { $sample: { size: limit } }
             ]).exec().then((doc) => {
                 for (let docEle of doc) {
+                    let matchedGraphemes = [];
                     const matchedTokens = tokenArr.filter(token => docEle.contentSourceData[0].phonemes.includes(token));
-                    wordsArr.push({ ...docEle, matchedChar: matchedTokens });
+                    for (let matchedTokensEle of matchedTokens) {
+                        matchedGraphemes.push(...graphemesMappedObj[matchedTokensEle]);
+                        allTokenGraphemes.push(...graphemesMappedObj[matchedTokensEle]);
+                    }
+                    wordsArr.push({ ...docEle, matchedChar: matchedGraphemes });
                 }
             })
 
@@ -1057,16 +1064,16 @@ export class contentService {
 
             let contentForToken = {};
 
-            for (let tokenArrEle of tokenArr) {
+            for (let allTokenGraphemesEle of allTokenGraphemes) {
                 let contentForTokenArr = [];
                 for (let wordsArrEle of wordsArr) {
                     if (wordsArrEle)
-                        if (wordsArrEle.matchedChar.includes(tokenArrEle)) {
+                        if (wordsArrEle.matchedChar.includes(allTokenGraphemesEle)) {
                             contentForTokenArr.push(wordsArrEle);
                         }
                 }
 
-                contentForToken[tokenArrEle] = contentForTokenArr;
+                contentForToken[allTokenGraphemesEle] = contentForTokenArr;
             }
 
             return { wordsArr: wordsArr, contentForToken: contentForToken };

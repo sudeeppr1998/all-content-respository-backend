@@ -163,7 +163,7 @@ export class contentController {
     @Post('search')
     async searchContent(@Res() response: FastifyReply, @Body() tokenData: any) {
         try {
-            const contentCollection = await this.contentService.search(tokenData.tokenArr, tokenData.language, tokenData.contentType, tokenData.limit, tokenData.tags, tokenData.cLevel, tokenData.complexityLevel);
+            const contentCollection = await this.contentService.search(tokenData.tokenArr, tokenData.language, tokenData.contentType, tokenData.limit, tokenData.tags, tokenData.cLevel, tokenData.complexityLevel, tokenData.graphemesMappedObj);
             return response.status(HttpStatus.CREATED).send({
                 status: "success",
                 data: contentCollection,
@@ -268,7 +268,7 @@ export class contentController {
     async getContent(@Res() response: FastifyReply, @Body() queryData: any) {
         try {
             let Batch: any = queryData.limit || 5;
-            const contentCollection = await this.contentService.search(queryData.tokenArr, queryData.language, queryData.contentType, parseInt(Batch), queryData.tags, queryData.cLevel, queryData.complexityLevel);
+            const contentCollection = await this.contentService.search(queryData.tokenArr, queryData.language, queryData.contentType, parseInt(Batch), queryData.tags, queryData.cLevel, queryData.complexityLevel, queryData.graphemesMappedObj);
             return response.status(HttpStatus.CREATED).send({
                 status: "success",
                 data: contentCollection,
