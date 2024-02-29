@@ -118,17 +118,7 @@ export class contentController {
 
                         // Iterate through each word
                         words.forEach(word => {
-                            // Create a Set to store unique characters for the current word
-                            const uniqueChars = new Set();
-
-                            // Iterate through each character in the current word
-                            for (let char of word) {
-                                // Add the character to the Set
-                                uniqueChars.add(char);
-                            }
-
-                            // Store the count of unique characters for the current word
-                            uniqueCharCounts[word] = uniqueChars.size;
+                            uniqueCharCounts[word] = word.toLowerCase().replace(/\s+/g, '').split("").length;
                         });
 
                         // Return the object containing unique character counts for each word
@@ -377,6 +367,71 @@ export class contentController {
                     newContent.result.wordMeasures = newWordMeasures;
 
                     return { ...contentSourceDataEle, ...newContent.result };
+                } else if (contentSourceDataEle['language'] === "en") {
+                    const url = process.env.ALL_TEXT_EVAL_URL + 'getPhonemes';
+
+                    const textData = {
+                        'text': contentSourceDataEle['text']
+                    };
+
+                    const newContent = await lastValueFrom(
+                        this.httpService.post(url, JSON.stringify(textData), {
+                            headers: {
+                                'Content-Type': 'application/json',
+                            }
+                        }).pipe(
+                            map((resp) => resp.data)
+                        )
+                    );
+
+                    let text = contentSourceDataEle['text'].replace(/[^\w\s]/gi, '');
+
+                    let totalWordCount = text.split(" ").length;
+
+                    let totalSyllableCount = text.toLowerCase().replace(/\s+/g, '').split("").length;
+
+                    function countWordFrequency(text) {
+                        // Convert text to lowercase and split it into words
+                        const words = text.toLowerCase().split(/\W+/).filter(word => word.length > 0);
+
+                        // Create an object to store word frequencies
+                        const wordFrequency = {};
+
+                        // Count the frequency of each word
+                        words.forEach(word => {
+                            if (wordFrequency[word]) {
+                                wordFrequency[word]++;
+                            } else {
+                                wordFrequency[word] = 1;
+                            }
+                        });
+
+                        return wordFrequency;
+                    }
+
+                    function countUniqueCharactersPerWord(sentence) {
+                        // Convert the sentence to lowercase to make the count case-insensitive
+                        sentence = sentence.toLowerCase();
+
+                        // Split the sentence into words
+                        const words = sentence.split(/\s+/);
+
+                        // Create an object to store unique character counts for each word
+                        const uniqueCharCounts = {};
+
+                        // Iterate through each word
+                        words.forEach(word => {
+                            uniqueCharCounts[word] = word.toLowerCase().replace(/\s+/g, '').split("").length;
+                        });
+
+                        // Return the object containing unique character counts for each word
+                        return uniqueCharCounts;
+                    }
+
+                    let frequency = countWordFrequency(text);
+                    let syllableCountMap = countUniqueCharactersPerWord(text);
+
+                    return { ...contentSourceDataEle, ...newContent, wordCount: totalWordCount, wordFrequency: frequency, syllableCount: totalSyllableCount, syllableCountMap: syllableCountMap };
                 } else {
                     return { ...contentSourceDataEle }
                 }
