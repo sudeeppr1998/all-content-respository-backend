@@ -868,7 +868,7 @@ export class contentService {
                 let contentLevel = [
                     {
                         "level": 'L1',
-                        "syllableCount": { "$eq": 2 },
+                        "syllableCount": { "$gte": 2, "$lte": 3 },
                         "language": "ta",
                         "contentType": "Word"
                     },
@@ -880,7 +880,7 @@ export class contentService {
                     },
                     {
                         "level": 'L2',
-                        "syllableCount": { "$gte": 2, "$lte": 3 },
+                        "syllableCount": { "$eq": 4 },
                         "language": "ta",
                         "contentType": "Word"
                     },
@@ -900,7 +900,7 @@ export class contentService {
                     },
                     {
                         "level": 'L3',
-                        "syllableCount": { "$gte": 4 },
+                        "syllableCount": { "$gt": 4 },
                         "language": "ta",
                         "contentType": "Word"
                     },
