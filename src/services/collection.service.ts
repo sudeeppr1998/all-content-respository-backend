@@ -58,9 +58,8 @@ export class CollectionService {
                     foreignField: "collectionId",
                     as: "content"
                 }
-            }
-            // ,
-            // { $sample: { size: 1 } }
+            },
+            { $sample: { size: 1 } }
         ]);
         return {
             data: data,
