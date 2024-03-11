@@ -770,8 +770,8 @@ export class contentService {
 
                                 if (cLevelQuery.hasOwnProperty("syllableCount")) {
                                     console.log(cLevelQuery.syllableCount)
-                                    for (let syllableCountKey in cLevelQuery.wordCount) {
-                                        cLevelQuery.syllableCount[syllableCountKey] = cLevelQuery.wordCount[syllableCountKey] - 1;
+                                    for (let syllableCountKey in cLevelQuery.syllableCount) {
+                                        cLevelQuery.syllableCount[syllableCountKey] = cLevelQuery.syllableCount[syllableCountKey] - 1;
                                     }
                                     console.log(cLevelQuery.syllableCount);
                                 }
@@ -1191,8 +1191,8 @@ export class contentService {
 
                     if (cLevelQuery.hasOwnProperty("syllableCount")) {
                         console.log(cLevelQuery.syllableCount)
-                        for (let syllableCountKey in cLevelQuery.wordCount) {
-                            cLevelQuery.syllableCount[syllableCountKey] = cLevelQuery.wordCount[syllableCountKey] - 1;
+                        for (let syllableCountKey in cLevelQuery.syllableCount) {
+                            cLevelQuery.syllableCount[syllableCountKey] = cLevelQuery.syllableCount[syllableCountKey] - 1;
                         }
                         console.log(cLevelQuery.syllableCount);
                     }
