@@ -295,10 +295,15 @@ export class contentService {
         }
     }
 
-    async search(tokenArr, language = 'ta', contentType = 'Word', limit = 5, tags = '', cLevel, complexityLevel, graphemesMappedObj): Promise<any> {
-        // if (tokenArr.length !== 0) {
+    async search(tokenArr, language = 'ta', contentType = 'Word', limit = 5, tags = '', cLevel, complexityLevel, graphemesMappedObj, gettargetlimit = 5): Promise<any> {
 
         if (language !== 'en') {
+
+            // Store All targets tokens
+            let allTokensArr = tokenArr;
+
+            // Take Top Tokens as per limit
+            tokenArr = tokenArr.slice(0, gettargetlimit);
 
             let mileStoneQuery = [];
             let cLevelQuery: any;
@@ -497,9 +502,6 @@ export class contentService {
                 }
             }
 
-
-
-
             let searchChar = tokenArr.join("|");
 
             let unicodeArray = [];
@@ -513,8 +515,8 @@ export class contentService {
                 unicodeArray.push(unicodeCombination);
             }
 
-            const startWithRegexPattern = new RegExp(`[${tokenArr.join("")}]`, 'gu');
-            const inBetweenRegexPattern = new RegExp(`\\B(${searchChar})`, 'gu');
+            let startWithRegexPattern = new RegExp(`[${tokenArr.join("")}]`, 'gu');
+            let inBetweenRegexPattern = new RegExp(`\\B(${searchChar})`, 'gu');
 
             let batchLimitForEndWith = Math.trunc(limit / 2);
             const batchLimitForStartWith = limit % 2 + batchLimitForEndWith;
@@ -614,6 +616,173 @@ export class contentService {
             query.contentSourceData.$elemMatch['language'] = language;
 
             if (tokenArr.length !== 0) {
+
+                query.contentSourceData.$elemMatch.text = inBetweenRegexPattern
+
+                // Check content count with top tokens with limit
+                let totalContent = await this.getTotalContentAvailable(query)
+
+                if (totalContent <= 50) {
+
+                    console.log("After top tokens", totalContent);
+                    // take targets next batch as content is below 50
+                    let nextTargetLimit = gettargetlimit * 2;
+                    tokenArr.push(...allTokensArr.slice(gettargetlimit, nextTargetLimit));
+
+                    startWithRegexPattern = new RegExp(`[${tokenArr.join("")}]`, 'gu');
+                    searchChar = tokenArr.join("|");
+                    inBetweenRegexPattern = new RegExp(`\\B(${searchChar})`, 'gu');
+
+                    unicodeArray = [];
+                    for (let tokenArrEle of tokenArr) {
+                        let unicodeCombination = '';
+                        for (const [index, token] of tokenArrEle.split('').entries()) {
+                            let unicodeValue = "\\" + "u0" + token.charCodeAt(0).toString(16);
+                            unicodeCombination += index !== 0 ? '+' : '';
+                            unicodeCombination += unicodeValue;
+                        }
+                        unicodeArray.push(unicodeCombination);
+                    }
+
+                    if (tags || tags.trim() !== '') {
+                        query = {
+                            "contentSourceData": {
+                                $elemMatch: {
+                                    "text": {
+                                        $regex: startWithRegexPattern
+                                    },
+                                    $and: [
+                                        cLevelQuery,
+                                        { $or: mileStoneQuery }
+                                    ]
+                                }
+                            },
+                            "contentType": contentType,
+                            "tags": { $all: tags }
+                        }
+                    } else if (contentType === 'char') {
+                        query = {
+                            "contentSourceData": {
+                                $elemMatch: {
+                                    "text": {
+                                        $regex: startWithRegexPattern
+                                    },
+                                    $and: [
+                                        { "syllableCount": { "$eq": 2 } }
+                                    ]
+                                }
+                            },
+                            "contentType": 'Word'
+                        }
+                    } else {
+                        if (cLevelQuery === undefined && mileStoneQuery.length !== 0) {
+                            query = {
+                                "contentSourceData": {
+                                    "$elemMatch": {
+                                        "text": {
+                                            $regex: startWithRegexPattern
+                                        },
+                                        $or: mileStoneQuery
+                                    }
+                                },
+                                "contentType": contentType
+                            }
+                        } else if (mileStoneQuery.length === 0 && cLevelQuery !== undefined) {
+                            query = {
+                                "contentSourceData": {
+                                    "$elemMatch": {
+                                        "text": {
+                                            $regex: startWithRegexPattern
+                                        },
+                                        $and: [
+                                            cLevelQuery
+                                        ],
+
+                                    }
+                                },
+                                "contentType": contentType
+                            }
+                        } else if (mileStoneQuery.length === 0 && cLevelQuery === undefined) {
+                            query = {
+                                "contentSourceData": {
+                                    "$elemMatch": {
+                                        "text": {
+                                            $regex: startWithRegexPattern
+                                        }
+                                    }
+                                },
+                                "contentType": contentType
+                            }
+                        }
+                        else {
+                            query = {
+                                "contentSourceData": {
+                                    "$elemMatch": {
+                                        "text": {
+                                            $regex: startWithRegexPattern
+                                        },
+                                        $and: [
+                                            cLevelQuery,
+                                            { $or: mileStoneQuery }
+                                        ],
+
+                                    }
+                                },
+                                "contentType": contentType
+                            }
+                        }
+                    }
+
+                    query.contentSourceData.$elemMatch.text = inBetweenRegexPattern
+
+                    totalContent = await this.getTotalContentAvailable(query)
+
+                    if (totalContent <= 50) {
+
+                        console.log("After adding next batch tokens", totalContent);
+                        // Remove totalOrthoComplexity as content count is low
+                        mileStoneQuery = mileStoneQuery.filter((mileStoneQueryEle) => {
+                            if (mileStoneQueryEle.hasOwnProperty("totalOrthoComplexity")) {
+                                return false;
+                            } else {
+                                return true;
+                            }
+                        })
+
+                        totalContent = await this.getTotalContentAvailable(query)
+
+                        if (totalContent <= 50) {
+
+                            console.log("After removing totalOrthoComplexity", totalContent);
+                            // Remove totalPhonicComplexity as content count is low
+                            mileStoneQuery = mileStoneQuery.filter((mileStoneQueryEle) => {
+                                if (mileStoneQueryEle.hasOwnProperty("totalPhonicComplexity")) {
+                                    return false;
+                                } else {
+                                    return true;
+                                }
+                            })
+                            totalContent = await this.getTotalContentAvailable(query)
+
+                            if (totalContent <= 50) {
+                                console.log("After removing totalPhonicComplexity", totalContent);
+                                console.log(cLevelQuery);
+
+                                if (cLevelQuery.hasOwnProperty("syllableCount")) {
+                                    console.log(cLevelQuery.wordCount)
+                                    for (let wordCountKey in cLevelQuery.wordCount) {
+                                        cLevelQuery.wordCount[wordCountKey] = cLevelQuery.wordCount[wordCountKey] - 1;
+                                    }
+                                    console.log(cLevelQuery.wordCount);
+                                }
+                                if (cLevelQuery.hasOwnProperty("syllableCountArray")) {
+                                    cLevelQuery.syllableCountArray["$not"]["$elemMatch"].v["$gte"] = cLevelQuery.syllableCountArray["$not"]["$elemMatch"].v["$gte"] - 1;
+                                }
+                            }
+                        }
+                    }
+
+                }
 
                 await this.content.aggregate([
                     {
@@ -767,7 +936,6 @@ export class contentService {
                     }
                 }
 
-                //console.log(wordsArr);
                 wordsArr = wordsArr.filter(element => {
                     return element !== undefined;
                 });
@@ -864,6 +1032,12 @@ export class contentService {
         } else if (language === "en") {
             let wordsArr = [];
             let cLevelQuery: any;
+
+            // Store All targets tokens
+            let allTokensArr = tokenArr;
+
+            // Take Top Tokens as per limit
+            tokenArr = tokenArr.slice(0, gettargetlimit);
 
             if (contentType.toLocaleLowerCase() === 'char') {
                 contentType = 'Word'
@@ -997,6 +1171,36 @@ export class contentService {
 
             query.contentSourceData.$elemMatch['language'] = language;
 
+            let totalContent = await this.getTotalContentAvailable(query);
+
+            if (totalContent <= 50) {
+                console.log("After top tokens", totalContent);
+                // take targets next batch as content is below 50
+                let nextTargetLimit = gettargetlimit * 2;
+                tokenArr.push(...allTokensArr.slice(gettargetlimit, nextTargetLimit));
+
+                totalContent = await this.getTotalContentAvailable(query);
+
+                console.log("After adding tokens", totalContent);
+
+                if (totalContent <= 50) {
+
+                    console.log("After adding more targets", totalContent);
+
+                    if (cLevelQuery.hasOwnProperty("syllableCount")) {
+                        console.log(cLevelQuery.wordCount)
+                        for (let wordCountKey in cLevelQuery.wordCount) {
+                            cLevelQuery.wordCount[wordCountKey] = cLevelQuery.wordCount[wordCountKey] - 1;
+                        }
+                        console.log(cLevelQuery.wordCount);
+                    }
+                    if (cLevelQuery.hasOwnProperty("syllableCountArray")) {
+                        cLevelQuery.syllableCountArray["$not"]["$elemMatch"].v["$gte"] = cLevelQuery.syllableCountArray["$not"]["$elemMatch"].v["$gte"] - 1;
+                    }
+                }
+            }
+
+
             let allTokenGraphemes = [];
 
             await this.content.aggregate([
@@ -1083,9 +1287,6 @@ export class contentService {
 
             return { wordsArr: wordsArr, contentForToken: contentForToken };
         }
-        // } else {
-        //     return {};
-        // }
     }
 
     async charNotPresent(tokenArr): Promise<any> {
@@ -1139,4 +1340,36 @@ export class contentService {
             return [];
         }
     }
+
+    async getTotalContentAvailable(query): Promise<any> {
+
+        let totalData = await this.content.aggregate([
+            {
+                $addFields: {
+                    "contentSourceData": {
+                        $map: {
+                            input: "$contentSourceData",
+                            as: "elem",
+                            in: {
+                                $mergeObjects: [
+                                    "$$elem",
+                                    {
+                                        "syllableCountArray": { $objectToArray: "$$elem.syllableCountMap" }
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                $match: query
+            },
+            {
+                $count: "totalContent"
+            }
+        ]).exec();
+        return totalData[0]?.totalContent || 0;
+    }
+
 }
