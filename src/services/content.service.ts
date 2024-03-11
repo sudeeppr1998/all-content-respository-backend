@@ -776,7 +776,9 @@ export class contentService {
                                     console.log(cLevelQuery.syllableCount);
                                 }
                                 if (cLevelQuery.hasOwnProperty("syllableCountArray")) {
-                                    cLevelQuery.syllableCountArray["$not"]["$elemMatch"].v["$gte"] = cLevelQuery.syllableCountArray["$not"]["$elemMatch"].v["$gte"] - 1;
+                                    if (cLevelQuery.syllableCountArray["$not"]["$elemMatch"].v["$gte"] > 5) {
+                                        cLevelQuery.syllableCountArray["$not"]["$elemMatch"].v["$gte"] = cLevelQuery.syllableCountArray["$not"]["$elemMatch"].v["$gte"] - 1;
+                                    }
                                 }
                             }
                         }
@@ -1195,7 +1197,9 @@ export class contentService {
                         console.log(cLevelQuery.syllableCount);
                     }
                     if (cLevelQuery.hasOwnProperty("syllableCountArray")) {
-                        cLevelQuery.syllableCountArray["$not"]["$elemMatch"].v["$gte"] = cLevelQuery.syllableCountArray["$not"]["$elemMatch"].v["$gte"] - 1;
+                        if (cLevelQuery.syllableCountArray["$not"]["$elemMatch"].v["$gte"] > 5) {
+                            cLevelQuery.syllableCountArray["$not"]["$elemMatch"].v["$gte"] = cLevelQuery.syllableCountArray["$not"]["$elemMatch"].v["$gte"] - 1;
+                        }
                     }
                 }
             }
