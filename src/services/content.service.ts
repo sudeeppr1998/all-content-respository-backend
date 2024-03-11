@@ -769,11 +769,11 @@ export class contentService {
                                 console.log(cLevelQuery);
 
                                 if (cLevelQuery.hasOwnProperty("syllableCount")) {
-                                    console.log(cLevelQuery.wordCount)
-                                    for (let wordCountKey in cLevelQuery.wordCount) {
-                                        cLevelQuery.wordCount[wordCountKey] = cLevelQuery.wordCount[wordCountKey] - 1;
+                                    console.log(cLevelQuery.syllableCount)
+                                    for (let syllableCountKey in cLevelQuery.wordCount) {
+                                        cLevelQuery.syllableCount[syllableCountKey] = cLevelQuery.wordCount[syllableCountKey] - 1;
                                     }
-                                    console.log(cLevelQuery.wordCount);
+                                    console.log(cLevelQuery.syllableCount);
                                 }
                                 if (cLevelQuery.hasOwnProperty("syllableCountArray")) {
                                     cLevelQuery.syllableCountArray["$not"]["$elemMatch"].v["$gte"] = cLevelQuery.syllableCountArray["$not"]["$elemMatch"].v["$gte"] - 1;
@@ -1188,11 +1188,11 @@ export class contentService {
                     console.log("After adding more targets", totalContent);
 
                     if (cLevelQuery.hasOwnProperty("syllableCount")) {
-                        console.log(cLevelQuery.wordCount)
-                        for (let wordCountKey in cLevelQuery.wordCount) {
-                            cLevelQuery.wordCount[wordCountKey] = cLevelQuery.wordCount[wordCountKey] - 1;
+                        console.log(cLevelQuery.syllableCount)
+                        for (let syllableCountKey in cLevelQuery.wordCount) {
+                            cLevelQuery.syllableCount[syllableCountKey] = cLevelQuery.wordCount[syllableCountKey] - 1;
                         }
-                        console.log(cLevelQuery.wordCount);
+                        console.log(cLevelQuery.syllableCount);
                     }
                     if (cLevelQuery.hasOwnProperty("syllableCountArray")) {
                         cLevelQuery.syllableCountArray["$not"]["$elemMatch"].v["$gte"] = cLevelQuery.syllableCountArray["$not"]["$elemMatch"].v["$gte"] - 1;
